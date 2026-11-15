@@ -1,1 +1,580 @@
-Loading...
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07090f"><title>G-Book Camera</title>
+<style>html,body{height:100%;margin:0;background:#07090f}</style>
+<script>
+(function(){
+ var CFG=window.GBC_CFG={
+  /* Ad unit id lives in the installed app, so a live update can never change it. */
+  rewardedId:'ca-app-pub-1069125783691383/4387347779',
+  /* Where the newest index.html is published (GitHub Pages). */
+  otaUrl:'https://makhokhar3333-source.github.io/index.html'
+ };
+ var K='gbc_ota_',LS=null;try{LS=window.localStorage}catch(e){}
+ function g(k){try{return LS.getItem(K+k)}catch(e){return null}}
+ function s(k,v){try{LS.setItem(K+k,v);return true}catch(e){return false}}
+ function d(k){try{LS.removeItem(K+k)}catch(e){}}
+ function hash(t){var h=5381,i=t.length;while(i)h=(h*33)^t.charCodeAt(--i);return (h>>>0).toString(36)+'.'+t.length}
+ function ver(t){var m=/name="gbc-version"\s+content="(\d+)"/.exec(t);return m?parseInt(m[1],10):0}
+ function unesc(t){return t.replace(/<\\\/script/g,'<'+'/script').replace(/<\\!--/g,'<'+'!--')}
+ function extract(t){var m=/<script type="text\/x-gbc-app" id="gbc-app">([\s\S]*?)<\/script>/.exec(t);return m?unesc(m[1]):null}
+ var cur=null,pending=false,busy=false,applying=false;
+ function pick(){
+  var b=unesc(document.getElementById('gbc-app').textContent),bv=ver(b),c=g('html'),cv=parseInt(g('ver')||'0',10);
+  if(c&&cv>=bv&&hash(c)!==g('bad'))return{html:c,v:cv,hash:hash(c),cached:true};
+  if(c){d('html');d('ver')}
+  return{html:b,v:bv,hash:hash(b),cached:false}}
+ function idle(){try{return typeof window.gbcIdle==='function'?!!window.gbcIdle():true}catch(e){return true}}
+ function tryApply(){
+  if(!pending||applying||!idle())return;
+  applying=true;try{if(window.gbcNotify)window.gbcNotify('Updating G-Book Camera…')}catch(e){}
+  setTimeout(function(){location.reload()},700)}
+ function check(){
+  if(busy||!navigator.onLine)return;busy=true;
+  fetch(CFG.otaUrl+'?t='+Date.now(),{cache:'no-store'}).then(function(r){if(!r.ok)throw 0;return r.text()}).then(function(t){
+   var h=extract(t);
+   if(!h||h.length<20000||h.length>3000000||h.indexOf('id="welcome"')<0||h.indexOf('</html>')<0)return;
+   var v=ver(h),hh=hash(h);
+   if(!v||hh===g('bad'))return;
+   if(v>cur.v||(v===cur.v&&hh!==cur.hash)){
+    if(s('html',h)){s('ver',String(v));pending=true;tryApply()}}
+  }).catch(function(){}).then(function(){busy=false})}
+ function watchdog(){
+  if(window.__gbcBooted||!cur.cached)return;
+  s('bad',cur.hash);d('html');d('ver');location.reload()}
+ function boot(){
+  var p=pick();cur={v:p.v,hash:p.hash,cached:p.cached};window.__gbcOTA={version:p.v,cached:p.cached,check:check};
+  document.open();document.write(p.html);document.close();
+  window.addEventListener('online',check);
+  window.addEventListener('error',function(){},true);
+  setTimeout(check,700);setTimeout(watchdog,8000);setInterval(tryApply,2500)}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+})();
+</script>
+</head><body>
+<script type="text/x-gbc-app" id="gbc-app"><!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="gbc-version" content="2026111501">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>G-Book Camera</title>
+<style>
+:root{--bg:#07090f;--panel:#10141d;--line:#222a38;--text:#eef3fa;--mute:#8b96a8;--glow:#4fd8ff;--glow2:#1aa7ff;--gold:#e6c27a;
+color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#07090f}}
+:root[data-theme="dark"]{--bg:#07090f}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{background:radial-gradient(900px 500px at 50% -10%,#10223a 0,var(--bg) 60%);color:var(--text);font:15px/1.4 -apple-system,"SF Pro Display","Segoe UI",Inter,Roboto,sans-serif;display:flex;justify-content:center;overflow:hidden}
+.app{width:100%;max-width:520px;height:100%;display:flex;flex-direction:column;padding:12px 16px 16px;gap:12px}
+header{display:flex;align-items:center;justify-content:space-between}
+h1{font-size:20px;margin:0;font-weight:650;letter-spacing:.2px}
+h1 span{color:var(--gold)}
+.brand{display:flex;align-items:center;gap:10px}.logo{width:34px;height:34px;filter:drop-shadow(0 0 8px rgba(79,216,255,.5))}
+.btn{border:0;font:inherit;cursor:pointer;color:var(--text);transition:transform .12s,box-shadow .2s}
+.btn:active{transform:scale(.96)}
+.btn:focus-visible,input:focus-visible{outline:2px solid var(--glow);outline-offset:3px}
+.export{background:linear-gradient(180deg,#7ae6ff,var(--glow2));color:#03131c;font-weight:650;padding:9px 20px;border-radius:999px;box-shadow:0 0 18px rgba(79,216,255,.55)}
+.export:disabled{opacity:.35;box-shadow:none;cursor:not-allowed}
+.stage{flex:1;min-height:0;position:relative;background:#04060a;border:1px solid var(--line);border-radius:22px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+canvas{max-width:100%;max-height:100%;display:none;touch-action:manipulation}
+.empty{position:absolute;inset:0 0 70px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--mute);padding:24px;gap:6px}
+.empty b{color:var(--text);font-size:17px;font-weight:600}
+.pick{position:absolute;left:0;right:0;bottom:0;display:flex;gap:10px;padding:14px;background:linear-gradient(0deg,rgba(4,6,10,.92),rgba(4,6,10,0))}
+.pk{flex:1;display:flex;flex-direction:column;gap:8px}.tip{text-align:center;font-size:12px;color:var(--mute)}
+.pick .btn{flex:1;padding:15px;border-radius:16px;background:linear-gradient(180deg,#7ae6ff,var(--glow2));color:#03131c;font-weight:650;font-size:16px;box-shadow:0 0 22px rgba(79,216,255,.45)}
+.badge{position:absolute;top:12px;left:12px;background:rgba(0,0,0,.65);padding:5px 12px;border-radius:999px;font-size:12px;display:none}
+.badge.on{display:block}
+.play{position:absolute;top:12px;right:12px;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;font-size:14px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:14px 16px 12px}
+.row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.row label{font-weight:600}
+.row output{color:var(--glow);font-variant-numeric:tabular-nums;font-weight:650}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:30px;background:transparent;margin:0;--p:0%}
+input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:6px;background:linear-gradient(90deg,var(--glow) var(--p),#262e3d var(--p));box-shadow:0 0 12px rgba(79,216,255,.25)}
+input[type=range]::-moz-range-track{height:6px;border-radius:6px;background:#262e3d}
+input[type=range]::-moz-range-progress{height:6px;border-radius:6px;background:var(--glow)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:#bdf1ff;margin-top:-10px;box-shadow:0 0 16px var(--glow)}
+input[type=range]::-moz-range-thumb{width:26px;height:26px;border:0;border-radius:50%;background:#bdf1ff;box-shadow:0 0 16px var(--glow)}
+.ticks{display:flex;justify-content:space-between;color:var(--mute);font-size:12px}
+.cmp{margin-top:10px;width:100%;padding:12px;border-radius:14px;background:transparent;border:1px solid #34405a;user-select:none;-webkit-user-select:none;touch-action:none;font-weight:550}
+.cmp.on{background:#16233a;border-color:var(--glow);box-shadow:0 0 16px rgba(79,216,255,.3)}
+.ad{position:fixed;inset:0;background:#000;display:none;flex-direction:column;z-index:20;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
+.ad.on{display:flex}
+.adtop{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;color:#cfd6e2;font-size:13px}
+.ring{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-weight:700;border:2px solid #3b4557;color:#fff;background:#111}
+.adbody{flex:1;margin:0 16px;border-radius:20px;background:linear-gradient(145deg,#2a1f5c,#0e5a7a 55%,#e6c27a);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;gap:10px}
+.adbody h2{margin:0;font-size:26px}
+.slot{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;background:rgba(0,0,0,.55);border:1px dashed #9fe9ff;padding:8px 12px;border-radius:10px;word-break:break-all}
+.bar{height:4px;background:#222;margin:14px 16px 0;border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--glow)}
+.adfoot{padding:14px 16px;text-align:center;color:#cfd6e2;min-height:64px}
+.adfoot .btn{background:var(--glow);color:#03131c;font-weight:650;padding:11px 24px;border-radius:999px;margin-top:6px}
+.welcome{position:fixed;inset:0;z-index:25;display:flex;flex-direction:column;align-items:center;overflow:hidden;
+background:radial-gradient(520px 420px at 82% 8%,rgba(150,90,255,.38),transparent 70%),radial-gradient(560px 460px at 10% 92%,rgba(40,200,255,.32),transparent 70%),radial-gradient(700px 500px at 50% 50%,#0f2a5e 0,#08142e 55%,#040813 100%);
+transition:opacity .55s ease,transform .55s ease}
+.welcome.out{opacity:0;transform:scale(1.06);pointer-events:none}
+.wtop{position:absolute;top:calc(env(safe-area-inset-top,0px) + 8vh);left:0;right:0;text-align:center;padding:0 20px}
+.welcome .logo{width:96px;height:96px;filter:drop-shadow(0 0 22px rgba(79,216,255,.7))}
+.w1{margin-top:18px;font-size:18px;color:#a9bcdc;letter-spacing:.5px}
+.w2{margin-top:4px;font-size:clamp(30px,8.5vw,40px);font-weight:800;line-height:1.15;background:linear-gradient(90deg,#fff,#9ff0ff 55%,#e6c27a);-webkit-background-clip:text;background-clip:text;color:transparent}
+.wtop{pointer-events:none}
+.wmid{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.wbtn{position:relative;pointer-events:auto;touch-action:manipulation;-webkit-user-select:none;user-select:none;min-width:220px;padding:18px 40px;border-radius:999px;font-size:20px;font-weight:700;color:#03131c;background:linear-gradient(180deg,#8cebff,#1aa7ff);box-shadow:0 0 34px rgba(79,216,255,.7),0 0 80px rgba(79,216,255,.25);animation:pulse 2.6s ease-in-out infinite}
+.wbtn:active{transform:scale(.96)}
+@keyframes pulse{50%{box-shadow:0 0 46px rgba(79,216,255,.95),0 0 100px rgba(79,216,255,.35)}}
+.net{position:fixed;top:0;left:0;right:0;z-index:40;background:#3a3b3c;color:#fff;font-size:13px;font-weight:500;text-align:center;padding:calc(env(safe-area-inset-top,0px) + 6px) 12px 6px;transform:translateY(-110%);transition:transform .3s ease;pointer-events:none}
+.net.on{transform:translateY(0)}
+.net.pulse{animation:netpulse .45s 3}@keyframes netpulse{50%{background:#d93025}}
+.wbtn.locked{opacity:.55;filter:saturate(.4);animation:none;box-shadow:none}.net.ok{background:#2e7d32}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#1b2434;border:1px solid #34405a;padding:10px 18px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:30;max-width:90%;text-align:center}
+.toast.on{opacity:1}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header><div class="brand"><svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="lg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9ff0ff"/><stop offset="1" stop-color="#2b6bff"/></linearGradient><radialGradient id="lg2" cx=".38" cy=".32" r=".8"><stop offset="0" stop-color="#5ad7ff"/><stop offset=".45" stop-color="#0a2a5c"/><stop offset="1" stop-color="#02050f"/></radialGradient></defs><rect width="64" height="64" rx="15" fill="#090d18"/><circle cx="32" cy="32" r="23" fill="none" stroke="url(#lg1)" stroke-width="4"/><circle cx="32" cy="32" r="17" fill="url(#lg2)"/><circle cx="32" cy="32" r="8" fill="#020611" stroke="#7fe3ff" stroke-width="1.2"/><ellipse cx="25.5" cy="23.5" rx="6" ry="3.4" fill="#fff" opacity=".85" transform="rotate(-35 25.5 23.5)"/><circle cx="38" cy="38.5" r="2" fill="#e6c27a"/></svg><h1>G-Book <span>Camera</span></h1></div><button class="btn export" id="exp" disabled>Export</button></header>
+
+  <div class="stage" id="stage">
+    <canvas id="cv"></canvas>
+    <div class="empty" id="empty"><b>Pick a photo or video</b><span>Dark night or bright day, one slider does the rest.</span></div>
+    <div class="badge" id="badge">Original</div>
+    <div class="play" id="play">❚❚</div>
+    <div class="pick">
+      <button class="btn" id="bg">Upload from Gallery</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="row"><label for="sl">iPhone Glow</label><output id="out">0%</output></div>
+    <input type="range" id="sl" min="0" max="100" value="0" step="1">
+    <div class="ticks"><span>0%</span><span>50%</span><span>100%</span></div>
+    <button class="btn cmp" id="cmp">Hold to Compare (Before / After)</button>
+  </div>
+</div>
+
+<input type="file" id="fg" accept="image/*,video/*" hidden>
+<video id="vid" playsinline loop style="display:none"></video>
+
+<div class="ad" id="ad">
+  <div class="adtop"><span>Google AdMob · Rewarded Video</span><div class="ring" id="ring">5</div></div>
+  <div class="adbody">
+    <div style="font-size:13px;opacity:.85">Sponsored · Ad</div>
+    <h2>Your reward is loading</h2>
+    <div>Watch to the end to unlock your HD export.</div>
+    <div class="slot" id="slot"></div>
+  </div>
+  <div class="bar"><i id="bar"></i></div>
+  <div class="adfoot" id="adfoot">Reward in 5 seconds</div>
+</div>
+<div class="ad" id="off" style="background:rgba(0,0,0,.7);align-items:center;justify-content:center"><div class="panel" style="max-width:300px;text-align:center;padding:22px"><b style="font-size:18px">Connect to Internet to Export</b><p style="color:var(--mute);margin:8px 0 16px">Turn on Wi-Fi or mobile data, then tap Export again.</p><button class="btn export" id="offok">OK</button></div></div>
+<div class="welcome" id="welcome"><div class="wtop"><div id="wl"></div><div class="w1">Welcome from</div><div class="w2">Malik Ghous Khokhar</div></div><div class="wmid"><button class="btn wbtn" id="wgo" type="button" onclick="window.gbGo&&window.gbGo()">Editing</button></div></div>
+<script>
+(function(){
+ var w=document.getElementById('welcome'),b=document.getElementById('wgo'),l=document.getElementById('wl'),done=false;
+ try{var lg=document.querySelector('.app .logo');if(lg&&l)l.innerHTML=lg.outerHTML}catch(e){}
+ function go(e){
+  if(e&&e.cancelable&&e.preventDefault)e.preventDefault();
+  if(done)return;
+  if(!navigator.onLine){lock();var n=document.getElementById('net');if(n){n.textContent='Connect to Internet';n.className='net on';void n.offsetWidth;n.className='net on pulse'}return}
+  done=true;
+  try{w.classList.add('out')}catch(x){}
+  setTimeout(function(){try{w.style.display='none';if(w.parentNode)w.parentNode.removeChild(w)}catch(x){}},450);
+ }
+ window.gbGo=go;
+ function lock(){b.classList.toggle('locked',!navigator.onLine);b.setAttribute('aria-disabled',String(!navigator.onLine))}
+ addEventListener('online',lock);addEventListener('offline',lock);lock();
+ ['click','touchend','pointerup'].forEach(function(n){b.addEventListener(n,go,false)});
+})();
+<\/script>
+<div class="net" id="net" role="status"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+
+const cv=$('cv'),cx=cv.getContext('2d',{willReadFrequently:true}),vid=$('vid');
+function hq(){cx.imageSmoothingEnabled=true;cx.imageSmoothingQuality='high'}
+const st={kind:null,amt:0,mean:.4,hold:false,src:null,raf:0,lid:0,fc:0,busy:false,url:null,vtrack:null,ac:null};
+const MAXP=1100,MAXV=720;
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+function makeIcon(n){const c=document.createElement('canvas');c.width=c.height=n;const x=c.getContext('2d'),u=n/64;
+ x.fillStyle='#090d18';x.fillRect(0,0,n,n);
+ let g=x.createLinearGradient(0,0,n,n);g.addColorStop(0,'#9ff0ff');g.addColorStop(1,'#2b6bff');
+ x.lineWidth=4*u;x.strokeStyle=g;x.beginPath();x.arc(32*u,32*u,23*u,0,7);x.stroke();
+ g=x.createRadialGradient(24*u,22*u,1,32*u,32*u,18*u);g.addColorStop(0,'#5ad7ff');g.addColorStop(.45,'#0a2a5c');g.addColorStop(1,'#02050f');
+ x.fillStyle=g;x.beginPath();x.arc(32*u,32*u,17*u,0,7);x.fill();
+ x.fillStyle='#020611';x.strokeStyle='#7fe3ff';x.lineWidth=1.2*u;x.beginPath();x.arc(32*u,32*u,8*u,0,7);x.fill();x.stroke();
+ x.fillStyle='rgba(255,255,255,.85)';x.beginPath();x.ellipse(25.5*u,23.5*u,6*u,3.4*u,-.61,0,7);x.fill();
+ x.fillStyle='#e6c27a';x.beginPath();x.arc(38*u,38.5*u,2*u,0,7);x.fill();return c.toDataURL('image/png')}
+try{const i180=makeIcon(180),i512=makeIcon(512);
+ [['apple-touch-icon',i180],['icon',i180]].forEach(([r,h])=>{const l=document.createElement('link');l.rel=r;l.href=h;document.head.append(l)});
+ const mf={name:'G-Book Camera',short_name:'G-Book',display:'standalone',background_color:'#07090f',theme_color:'#07090f',icons:[{src:i180,sizes:'180x180',type:'image/png'},{src:i512,sizes:'512x512',type:'image/png'}]};
+ const ml=document.createElement('link');ml.rel='manifest';ml.href=URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/manifest+json'}));document.head.append(ml);
+ const m1=document.createElement('meta');m1.name='apple-mobile-web-app-title';m1.content='G-Book Camera';document.head.append(m1)}catch(e){}
+const _pc={};
+function plug(n){if(_pc[n])return _pc[n];try{const C=window.Capacitor;if(!C)return null;let p=C.Plugins&&C.Plugins[n];if(!p&&C.registerPlugin)p=C.registerPlugin(n);if(p)_pc[n]=p;return p||null}catch(e){return null}}
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+
+function toast(m,ms=2600){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),ms)}
+
+function meanLuma(el,w,h){const c=document.createElement('canvas');c.width=48;c.height=Math.max(1,Math.round(48*h/w));const x=c.getContext('2d');x.drawImage(el,0,0,c.width,c.height);const d=x.getImageData(0,0,c.width,c.height).data;let s=0;for(let i=0;i<d.length;i+=4)s+=(.2126*d[i]+.7152*d[i+1]+.0722*d[i+2])/255;return s/(d.length/4)}
+
+let lut=new Uint8ClampedArray(256),gainL=new Float32Array(256),glowL=new Float32Array(256),clL=new Float32Array(256),lutKey='';
+function buildLut(t,mean){const k=t.toFixed(3)+mean.toFixed(2);if(k===lutKey)return;lutKey=k;
+ const dark=clamp((.5-mean)/.4,0,1),g=1-t*(.08+.34*dark),hc=.4*t,bp=.04*t;
+ for(let i=0;i<256;i++){let v=Math.pow(i/255,g);v=v*(1+hc)/(1+hc*v);v=clamp((v-bp)/(1-bp),0,1);
+  const s=v*v*(3-2*v);v+=(s-v)*t*.5;lut[i]=v*255+.5;
+  gainL[i]=clamp(Math.pow(.46/Math.max(i/255,.07),.2*t*(.6+.7*dark)),.88,1.9);
+  glowL[i]=t*30*Math.max(0,(i/255-.7)/.3);clL[i]=1-Math.abs(i/127.5-1)}}
+
+let Lp=null,smc=null,smx=null,bs=null,cxi=null,cxf=null,cxk='';
+function enhance(c2,w,h,t,sharp){
+ if(t<=0)return;buildLut(t,st.mean);
+ const sw=Math.max(4,Math.ceil(w/16)),sh=Math.max(4,Math.ceil(h/16));
+ if(!smc||smc.width!==sw||smc.height!==sh){smc=document.createElement('canvas');smc.width=sw;smc.height=sh;smx=smc.getContext('2d',{willReadFrequently:true});smx.imageSmoothingQuality='high';bs=new Float32Array(sw*sh)}
+ smx.drawImage(c2.canvas,0,0,sw,sh);
+ const sd=smx.getImageData(0,0,sw,sh).data;
+ for(let i=0,q=0;q<bs.length;i+=4,q++)bs[q]=.2126*sd[i]+.7152*sd[i+1]+.0722*sd[i+2];
+ const key=w+'x'+sw;
+ if(cxk!==key){cxk=key;cxi=new Int32Array(w);cxf=new Float32Array(w);
+  for(let x=0;x<w;x++){let u=(x+.5)*sw/w-.5;if(u<0)u=0;if(u>sw-1)u=sw-1;const i0=u|0;cxi[x]=i0;cxf[x]=u-i0}}
+ const id=c2.getImageData(0,0,w,h),d=id.data,sat=1+.38*t,wr=1+.025*t,wb=1-.03*t,cxm=w/2,cym=h/2,cl=.22*t;
+ if(!Lp||Lp.length!==w*h)Lp=new Uint8Array(w*h);
+ for(let y=0,i=0,j=0;y<h;y++){
+  let gy=(y+.5)*sh/h-.5;if(gy<0)gy=0;if(gy>sh-1)gy=sh-1;
+  const y0=gy|0,y1=y0+1<sh?y0+1:y0,fy=gy-y0,r0=y0*sw,r1=y1*sw,dy=(y-cym)/cym,dy2=dy*dy;
+  for(let x=0;x<w;x++,i+=4,j++){
+   const x0=cxi[x],x1=x0+1<sw?x0+1:x0,fx=cxf[x],dx=(x-cxm)/cxm,
+   B=(bs[r0+x0]*(1-fx)+bs[r0+x1]*fx)*(1-fy)+(bs[r1+x0]*(1-fx)+bs[r1+x1]*fx)*fy,Bi=B|0,gn=gainL[Bi];
+   let r=d[i]*gn,g=d[i+1]*gn,b=d[i+2]*gn;
+   r=lut[r>255?255:r|0];g=lut[g>255?255:g|0];b=lut[b>255?255:b|0];
+   const l=.2126*r+.7152*g+.0722*b;Lp[j]=l;
+   let s2=sat*(1+.3*t*(1-Math.abs(l/127.5-1)));
+   if(r>g&&g>b&&l>40){const q=(g-b)/(r-b+1);if(q>.25&&q<.8)s2=1+(s2-1)*.55}
+   const add=(l-B)*cl*clL[Bi]+glowL[Bi],vg=1+.07*t-.08*t*(dx*dx+dy2);
+   d[i]=(l+(r-l)*s2+add)*wr*vg;d[i+1]=(l+(g-l)*s2+add)*vg;d[i+2]=(l+(b-l)*s2+add)*wb*vg}}
+ if(sharp!==0){const k=1.6*t;
+  for(let y=1;y<h-1;y++){let j=y*w+1,p=j*4;
+   for(let x=1;x<w-1;x++,j++,p+=4){const c=Lp[j],a=(Lp[j-1]+Lp[j+1]+Lp[j-w]+Lp[j+w])*.25,s3=c<85?1-c/85:0;
+    let dl=(c-a)*(k*(1-.85*s3)-.9*s3*t);if(dl>28)dl=28;else if(dl<-28)dl=-28;
+    d[p]+=dl;d[p+1]+=dl;d[p+2]+=dl}}}
+ c2.putImageData(id,0,0)}
+
+function fit(w,h,max){const s=Math.min(1,max/Math.max(w,h));return[Math.round(w*s),Math.round(h*s)]}
+
+function render(){
+ if(st.kind==='photo'){const{w,h}=st.dim;cv.width=w;cv.height=h;hq();cx.drawImage(st.src,0,0,w,h);enhance(cx,w,h,st.hold?0:st.amt/100,true)}
+}
+function drawV(){
+ if(st.kind!=='video'||vid.readyState<2)return;
+ const w=cv.width,h=cv.height,t0=performance.now();hq();cx.drawImage(vid,0,0,w,h);
+ if(++st.fc%30===1)st.mean=st.mean*.5+meanLuma(vid,w,h)*.5;
+ enhance(cx,w,h,st.hold?0:st.amt/100,true);
+ if(st.vtrack&&st.vtrack.requestFrame)st.vtrack.requestFrame();
+ if(st.watch){const dt=performance.now()-t0;st.ema=st.ema?st.ema*.9+dt*.1:dt;if(++st.nf>30&&st.ema>30&&st.onSlow)st.onSlow()}}
+function loop(){
+ const id=++st.lid;
+ const step=()=>{if(id!==st.lid||st.kind!=='video')return;drawV();
+  if(vid.requestVideoFrameCallback)vid.requestVideoFrameCallback(step);else st.raf=requestAnimationFrame(step)};
+ step()}
+
+function show(kind){
+ st.kind=kind;st.lid++;cancelAnimationFrame(st.raf);
+ cv.style.display='block';$('empty').style.display='none';$('exp').disabled=false;
+ $('play').style.display=kind==='video'?'flex':'none';
+ if(kind==='video'){vid.loop=true;vid.muted=false;vid.volume=1;
+  vid.play().catch(()=>{vid.muted=true;vid.play().catch(()=>{});const un=()=>{vid.muted=false;vid.volume=1;if(st.ac&&st.ac.state!=='running')st.ac.resume();removeEventListener('pointerdown',un)};addEventListener('pointerdown',un)});
+  $('play').textContent='❚❚';loop()}else{vid.pause();render()}}
+
+$('bg').onclick=()=>$('fg').click();
+
+$('fg').onchange=e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+ const n=f.name||'',isV=f.type.startsWith('video')||/\.(mp4|mov|m4v|webm|3gp|mkv|avi)$/i.test(n),isI=f.type.startsWith('image')||/\.(jpe?g|png|webp|gif|bmp|heic|heif|avif)$/i.test(n);
+ if(isV)loadVideo(f);else if(isI)loadPhoto(f);else toast('Please pick a photo or video file.',3500)};
+function loadPhoto(f){vid.pause();
+ const img=new Image();img.onload=()=>{const[w,h]=fit(img.naturalWidth,img.naturalHeight,MAXP);
+  st.src=img;st.dim={w,h};st.full=img;st.mean=meanLuma(img,img.naturalWidth,img.naturalHeight);show('photo')};
+ img.onerror=()=>toast('Could not open that photo.');img.src=URL.createObjectURL(f)}
+function loadVideo(f){
+ if(st.url)URL.revokeObjectURL(st.url);st.url=URL.createObjectURL(f);st.file=f;
+ vid.onloadeddata=()=>{const[w,h]=fit(vid.videoWidth,vid.videoHeight,MAXV);cv.width=w;cv.height=h;st.fc=0;st.mean=meanLuma(vid,w,h);show('video')};
+ vid.onerror=()=>toast('This video format can’t be opened here.');
+ vid.src=st.url;vid.load()}
+$('stage').onclick=e=>{if(st.kind!=='video'||e.target.closest('.pick'))return;
+ if(vid.paused){vid.play();$('play').textContent='❚❚'}else{vid.pause();$('play').textContent='▶'}};
+
+const sl=$('sl');
+sl.oninput=()=>{st.amt=+sl.value;$('out').textContent=st.amt+'%';sl.style.setProperty('--p',st.amt+'%');if(st.kind==='photo')render();else if(st.kind==='video'&&vid.paused)drawV()};
+
+const cmp=$('cmp');
+function hold(on){if(st.hold===on)return;st.hold=on;cmp.classList.toggle('on',on);$('badge').classList.toggle('on',on);if(st.kind==='photo')render();else if(st.kind==='video'&&vid.paused)drawV()}
+cmp.addEventListener('pointerdown',e=>{e.preventDefault();cmp.setPointerCapture(e.pointerId);hold(true)});
+['pointerup','pointercancel','lostpointercapture'].forEach(n=>cmp.addEventListener(n,()=>hold(false)));
+cmp.addEventListener('contextmenu',e=>e.preventDefault());
+cmp.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();hold(true)}});
+cmp.addEventListener('keyup',()=>hold(false));
+
+/* Export + simulated rewarded ad */
+const ADMOB_REWARDED_ID_REAL=(window.GBC_CFG&&window.GBC_CFG.rewardedId)||'ca-app-pub-1069125783691383/4387347779';
+const USE_TEST_ADS=false; /* set true while testing so you never click your own live ads */
+const ADMOB_REWARDED_ID=USE_TEST_ADS?'ca-app-pub-3940256099942544/5224354917':ADMOB_REWARDED_ID_REAL;
+$('exp').onclick=()=>{if(!st.kind||st.busy)return;
+ if(!navigator.onLine){$('off').classList.add('on');return}
+ st.busy=true;runAd()};
+$('offok').onclick=()=>$('off').classList.remove('on');
+const Ads={inited:false,ready:false,p:null,fails:0,rt:0,onReward:null,onEnd:null,onFail:null};
+async function adsInit(){
+ if(Ads.inited)return true;const A=plug('AdMob');if(!A)return false;
+ try{
+  await A.initialize({initializeForTesting:USE_TEST_ADS});
+  A.addListener('onRewardedVideoAdLoaded',()=>{Ads.ready=true;Ads.fails=0});
+  A.addListener('onRewardedVideoAdFailedToLoad',()=>{Ads.ready=false});
+  A.addListener('onRewardedVideoAdReward',()=>{Ads.onReward&&Ads.onReward()});
+  A.addListener('onRewardedVideoAdDismissed',()=>{Ads.ready=false;Ads.onEnd&&Ads.onEnd();setTimeout(adsPreload,800)});
+  A.addListener('onRewardedVideoAdFailedToShow',()=>{Ads.ready=false;Ads.onFail&&Ads.onFail();setTimeout(adsPreload,800)});
+  Ads.inited=true;return true
+ }catch(e){return false}}
+function adsPreload(){
+ if(Ads.ready)return Promise.resolve('ready');
+ if(Ads.p)return Ads.p;
+ if(!navigator.onLine||!Ads.inited)return Promise.resolve('offline');
+ const A=plug('AdMob');
+ Ads.p=(async()=>{try{await A.prepareRewardVideoAd({adId:ADMOB_REWARDED_ID,isTesting:USE_TEST_ADS});Ads.ready=true;Ads.fails=0;return'ready'}
+  catch(e){Ads.ready=false;Ads.fails++;clearTimeout(Ads.rt);if(Ads.fails<=6)Ads.rt=setTimeout(adsPreload,Math.min(30000,4000*Ads.fails));return(e&&e.code===3)||/no.?fill/i.test((e&&e.message)||'')?'nofill':'error'}
+  finally{Ads.p=null}})();
+ return Ads.p}
+async function adsStart(){if(await adsInit())adsPreload()}
+
+async function runAd(){
+ st.wasPlaying=st.kind==='video'&&!vid.paused;if(st.wasPlaying)vid.pause();
+ $('slot').textContent='';$('ring').textContent='…';$('bar').style.width='0';
+ $('adfoot').textContent='Loading Ad…';$('ad').classList.add('on');
+ let exportP=null,got=false,failed=false,dismissed;const ended=new Promise(r=>dismissed=r);
+ try{
+  if(!(await adsInit())){closeAd();toast('Ads could not start. Restart the app and try again.',4500);return}
+  const t0=Date.now();
+  for(let i=0;i<3&&!Ads.ready;i++){
+   if(!navigator.onLine){closeAd();$('off').classList.add('on');return}
+   const r=await Promise.race([adsPreload(),wait(2000).then(()=>'timeout')]);
+   if(Ads.ready||Date.now()-t0>=6000)break;
+   if(r!=='timeout')await wait(400)}
+  if(!Ads.ready){toast('No ad available right now. Exporting…',2500);exportP=doExport();await exportP;return}
+  Ads.onReward=()=>{if(got)return;got=true;if(st.kind!=='video')exportP=doExport()};
+  Ads.onEnd=()=>setTimeout(dismissed,400);
+  Ads.onFail=()=>{failed=true;Ads.onEnd()};
+  Ads.ready=false;
+  try{const r=await plug('AdMob').showRewardVideoAd();if(r&&(r.type!==undefined||r.amount!==undefined))Ads.onReward()}
+  catch(e){failed=true;Ads.onEnd()}
+  await ended;
+  if(!exportP){
+   if(got||failed)exportP=doExport();
+   else{closeAd();toast('Watch the full ad to unlock Export.',3500);return}}
+  await exportP;
+ }catch(e){closeAd();toast('Something went wrong: '+((e&&e.message)||e),4000)}
+ finally{Ads.onReward=Ads.onEnd=Ads.onFail=null;setTimeout(adsPreload,1000)}
+}
+function closeAd(){$('ad').classList.remove('on');st.busy=false;if(st.kind==='video'&&st.wasPlaying&&!st.exporting){st.wasPlaying=false;vid.play().catch(()=>{})}}
+function retryBtn(fn){const f=$('adfoot');f.innerHTML='';const b=document.createElement('button');b.className='btn';b.textContent='Save file';b.onclick=fn;f.append(b)}
+
+function b64(blob){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(blob)})}
+async function save(name,blob){
+ try{
+  const F=plug('Filesystem');if(!F)throw new Error('Saving works in the installed Android app.');
+  try{await F.requestPermissions()}catch(e){}
+  const tries=[['EXTERNAL_STORAGE','Pictures/G-Book Camera/'],['DOCUMENTS','G-Book Camera/'],['DATA','']],CH=3*1024*1024;
+  for(const [directory,pre] of tries){
+   try{
+    for(let o=0,i=0;o<blob.size||i===0;o+=CH,i++){
+     const data=await b64(blob.slice(o,o+CH));
+     if(i===0)await F.writeFile({path:pre+name,data,directory,recursive:true});
+     else await F.appendFile({path:pre+name,data,directory})}
+    if(directory==='EXTERNAL_STORAGE'){try{const M=plug('MediaScan');if(M)await M.scan({path:pre+name})}catch(e){}}
+    toast('Saved: '+(pre||'app storage/')+name,3500);closeAd();return}catch(e){}}
+  throw new Error('no writable folder');
+ }catch(e){toast('Could not save: '+((e&&e.message)||e),4500);closeAd()}}
+
+async function doExport(){
+ try{
+  if(st.kind==='photo'){
+   const im=st.full,[w,h]=fit(im.naturalWidth,im.naturalHeight,3264),c=document.createElement('canvas');c.width=w;c.height=h;
+   const x=c.getContext('2d',{willReadFrequently:true});x.imageSmoothingQuality='high';x.drawImage(im,0,0,w,h);
+   enhance(x,w,h,st.amt/100,true);
+   const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',.95));
+   $('adfoot').textContent='Saving…';await save('G-Book-Camera-HD.jpg',blob)
+  }else{await exportVideo()}
+ }catch(e){toast('Export failed: '+(e&&e.message||e),4000);closeAd()}}
+function prepAudio(){
+ try{
+  if(!st.ac){const AC=window.AudioContext||window.webkitAudioContext;st.ac=new AC();
+   st.asrc=st.ac.createMediaElementSource(vid);st.mon=st.ac.createGain();st.adst=st.ac.createMediaStreamDestination();
+   st.asrc.connect(st.adst);st.asrc.connect(st.mon);st.mon.connect(st.ac.destination)}
+  if(st.ac.state!=='running')st.ac.resume()
+ }catch(e){}}
+function pickSize(level,lim){lim=lim||22;
+ const vw=vid.videoWidth,vh=vid.videoHeight,t=Math.max(st.amt/100,.6),S=[1920,1280,960,640];
+ for(let i=level;i<4;i++){
+  let[w,h]=fit(vw,vh,S[i]);w&=~1;h&=~1;cv.width=w;cv.height=h;hq();let tt=0;
+  for(let k=0;k<3;k++){const t0=performance.now();cx.drawImage(vid,0,0,w,h);enhance(cx,w,h,t,true);tt+=performance.now()-t0}
+  if(tt/3<=lim||i===3)return[w,h,i,tt/3]}}
+async function recordOnce(mt,level){
+ vid.pause();
+ if(vid.currentTime>.05){await new Promise(r=>{vid.onseeked=r;vid.currentTime=0;setTimeout(r,700)});vid.onseeked=null}
+ const[w,h,idx]=pickSize(level),foot=$('adfoot');st.nf=0;st.ema=0;
+ let fs=cv.captureStream(0),vt=fs.getVideoTracks()[0];
+ if(!vt||!vt.requestFrame){fs=cv.captureStream(30);vt=null}
+ st.vtrack=vt;
+ const tracks=[...fs.getVideoTracks()];let hasA=false;
+ try{if(st.ac){await st.ac.resume();st.adst.stream.getAudioTracks().forEach(t=>{tracks.push(t);hasA=true})}}catch(e){}
+ if(!hasA){try{const vs=vid.captureStream&&vid.captureStream();vs&&vs.getAudioTracks().forEach(t=>tracks.push(t))}catch(e){}}
+ const rec=new MediaRecorder(new MediaStream(tracks),{mimeType:mt,videoBitsPerSecond:Math.round(clamp(w*h*30*.2,2.5e6,14e6)),audioBitsPerSecond:192000}),ch=[];
+ rec.ondataavailable=e=>e.data.size&&ch.push(e.data);
+ let slow=false;
+ const stopped=new Promise(r=>rec.onstop=r),ended=new Promise(res=>{vid.onended=res;st.onSlow=()=>{slow=true;res()}});
+ vid.ontimeupdate=()=>{foot.textContent='Rendering HD… '+Math.round(100*vid.currentTime/(vid.duration||1))+'%'};
+ st.watch=idx<3;rec.start(1000);await vid.play();await ended;vid.pause();
+ st.watch=false;st.onSlow=null;if(!slow)await wait(200);
+ rec.stop();await stopped;st.vtrack=null;vid.ontimeupdate=null;vid.onended=null;
+ return slow?{slow:true,level:idx}:{blob:new Blob(ch,{type:mt.split(';')[0]})}}
+const median=a=>{a=[...a].sort((x,y)=>x-y);return a[a.length>>1]};
+function snapFps(f){for(const v of [23.976,24,25,29.97,30,48,50,59.94,60])if(Math.abs(f-v)/v<.012)return v;return Math.round(f)||30}
+function seek0(){return new Promise(r=>{if(vid.currentTime<.01){r();return}vid.onseeked=()=>{vid.onseeked=null;r()};vid.currentTime=0;setTimeout(r,1500)})}
+async function probeFps(){
+ const ts=[];
+ await new Promise(res=>{const cb=(n,m)=>{ts.push(m.mediaTime);if(ts.length>=14)res();else vid.requestVideoFrameCallback(cb)};
+  vid.requestVideoFrameCallback(cb);vid.play().catch(()=>res());setTimeout(res,2500)});
+ vid.pause();const d=[];for(let i=1;i<ts.length;i++){const x=ts[i]-ts[i-1];if(x>0)d.push(x)}
+ const hasAudio=vid.webkitAudioDecodedByteCount!==undefined?(vid.webkitAudioDecodedByteCount>0):(vid.mozHasAudio!==undefined?vid.mozHasAudio:null);
+ return{fps:d.length>3?snapFps(1/median(d)):30,hasAudio}}
+async function decodeAudio(){
+ const AC=window.AudioContext||window.webkitAudioContext,ac=new AC({sampleRate:48000});
+ try{return await ac.decodeAudioData(await st.file.arrayBuffer())}finally{try{ac.close()}catch(e){}}}
+
+async function encodeAttempt(w,h,fps,rate,buf,dur){
+ const foot=$('adfoot'),vcfg={width:w,height:h,bitrate:Math.round(clamp(w*h*fps*.25,4e6,16e6)),framerate:fps,latencyMode:'quality',avc:{format:'avc'}};
+ let vc=null;
+ for(const c of ['avc1.64002A','avc1.4D402A','avc1.42E02A','avc1.640028','avc1.4D4028','avc1.42E028']){
+  try{if((await VideoEncoder.isConfigSupported({...vcfg,codec:c})).supported){vc=c;break}}catch(e){}}
+ if(!vc)return null;
+ const sr=buf?buf.sampleRate:0,acfg={codec:'mp4a.40.2',sampleRate:sr,numberOfChannels:2,bitrate:192000};
+ if(buf){try{if(!(await AudioEncoder.isConfigSupported(acfg)).supported)return null}catch(e){return null}}
+ const target=new Mp4Muxer.ArrayBufferTarget();
+ const mux=new Mp4Muxer.Muxer({target,video:{codec:'avc',width:w,height:h},...(buf?{audio:{codec:'aac',numberOfChannels:2,sampleRate:sr}}:{}),fastStart:'in-memory'});
+ let err=null;
+ const venc=new VideoEncoder({output:(c,m)=>mux.addVideoChunk(c,m),error:e=>{err=e}});venc.configure({...vcfg,codec:vc});
+ const aenc=buf?new AudioEncoder({output:(c,m)=>mux.addAudioChunk(c,m),error:e=>{err=e}}):null;if(aenc)aenc.configure(acfg);
+ const total=buf?Math.round(dur*sr):0,blen=buf?buf.length:0,c0=buf&&buf.getChannelData(0),c1=buf&&(buf.numberOfChannels>1?buf.getChannelData(1):c0);let apos=0;
+ const pump=sec=>{if(!aenc)return;const to=Math.min(total,Math.round(sec*sr));
+  while(apos<to){const n=Math.min(4800,total-apos),data=new Float32Array(n*2),e=Math.min(blen,apos+n);
+   if(e>apos){data.set(c0.subarray(apos,e),0);data.set(c1.subarray(apos,e),n)}
+   aenc.encode(new AudioData({format:'f32-planar',sampleRate:sr,numberOfFrames:n,numberOfChannels:2,timestamp:Math.round(apos*1e6/sr),data}));apos+=n}};
+ const td=1/fps,totalFrames=Math.round(dur*fps),kf=Math.max(1,Math.round(fps*2));
+ let nextN=0,lastM=-1,drops=0,done=false,aborted=false,slowed=false,resolveEnd;
+ const emit=()=>{const f=new VideoFrame(cv,{timestamp:Math.round(nextN*1e6/fps),duration:Math.round(1e6/fps)});venc.encode(f,{keyFrame:nextN%kf===0});f.close();nextN++};
+ const onFrame=(now,meta)=>{
+  if(done||aborted||err)return;
+  vid.requestVideoFrameCallback(onFrame);
+  const m=meta.mediaTime;
+  if(lastM>=0&&m-lastM>td*1.6)drops+=Math.round((m-lastM)/td)-1;
+  lastM=m;
+  while(nextN<totalFrames&&nextN*td<m-td*.5)emit();
+  drawV();
+  while(nextN<totalFrames&&nextN*td<m+td*.5)emit();
+  pump(nextN*td+.3);
+  foot.textContent='Rendering HD… '+Math.min(99,Math.round(100*m/dur))+'%';
+  if(drops>Math.max(6,totalFrames*.04)&&rate>.12){aborted=true;resolveEnd();return}
+  const q=venc.encodeQueueSize;
+  if(q>6&&!slowed){slowed=true;vid.playbackRate=Math.max(.0625,rate*.4)}else if(q<=2&&slowed){slowed=false;vid.playbackRate=rate}};
+ vid.playbackRate=rate;vid.defaultPlaybackRate=rate;
+ const endP=new Promise(res=>{resolveEnd=res;vid.onended=res});
+ drawV();
+ vid.requestVideoFrameCallback(onFrame);
+ await vid.play();await endP;done=true;vid.pause();vid.onended=null;
+ if(aborted||err){try{venc.close();if(aenc)aenc.close()}catch(e){}return aborted?{retry:true}:null}
+ await wait(80);
+ while(nextN<totalFrames)emit();
+ pump(dur+1);
+ await venc.flush();if(aenc)await aenc.flush();
+ venc.close();if(aenc)aenc.close();
+ if(err)return null;
+ mux.finalize();
+ return{blob:new Blob([target.buffer],{type:'video/mp4'}),frames:nextN}}
+
+async function exportMP4(){
+ if(!(window.VideoEncoder&&window.AudioEncoder&&window.VideoFrame&&window.AudioData&&window.Mp4Muxer&&vid.requestVideoFrameCallback))return null;
+ const dur=vid.duration;if(!isFinite(dur)||dur<=0)return null;
+ const foot=$('adfoot');
+ st.exporting=true;st.hold=false;st.lid++;vid.loop=false;vid.muted=true;vid.pause();
+ try{
+  foot.textContent='Preparing video…';
+  await seek0();
+  const pr=await probeFps(),fps=pr.fps;
+  let buf=null;
+  if(pr.hasAudio!==false){foot.textContent='Reading audio…';buf=await decodeAudio()}
+  await seek0();
+  let rate=1,res=null,lvl=0;
+  for(let a=0;a<5&&!res;a++){
+   const[w,h,idx,ms]=pickSize(lvl,56);
+   rate=clamp(.8*(1000/fps)/ms*Math.pow(.75,a),.12,1);
+   foot.textContent=a?'Optimizing for exact timing…':'Rendering HD…';
+   const r=await encodeAttempt(w,h,fps,rate,buf,dur);
+   if(!r)return null;
+   if(r.retry){lvl=Math.min(3,idx+1);await seek0()}else res=r}
+  return res?res.blob:null;
+ }finally{
+  st.exporting=false;st.watch=false;st.vtrack=null;vid.onended=null;vid.loop=true;vid.muted=false;vid.volume=1;vid.playbackRate=1;vid.defaultPlaybackRate=1;
+  const[pw,ph]=fit(vid.videoWidth,vid.videoHeight,MAXV);cv.width=pw;cv.height=ph;
+  try{vid.currentTime=0}catch(e){}vid.play().catch(()=>{});loop()}}
+
+async function exportVideo(){
+ let blob=null;
+ try{blob=await exportMP4()}catch(e){blob=null}
+ if(blob){$('adfoot').textContent='Saving…';await save('G-Book-Camera-HD.mp4',blob);return}
+ await exportVideoLegacy()}
+
+async function exportVideoLegacy(){
+ const types=['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4','video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'];
+ const mt=window.MediaRecorder&&types.find(t=>MediaRecorder.isTypeSupported(t));
+ if(!mt){toast('Video export isn’t supported on this device.',4000);closeAd();return}
+ const ext=mt.startsWith('video/mp4')?'mp4':'webm',foot=$('adfoot');
+ st.exporting=true;st.hold=false;vid.loop=false;vid.playbackRate=1;vid.defaultPlaybackRate=1;vid.muted=false;vid.volume=1;
+ prepAudio();if(st.mon)st.mon.gain.value=0;
+ let level=0,blob=null;
+ try{
+  for(let a=0;a<4&&!blob;a++){foot.textContent=a?'Optimizing for smooth 1.0x playback…':'Preparing video…';
+   const r=await recordOnce(mt,level);if(r.slow)level=r.level+1;else blob=r.blob}
+ }finally{st.exporting=false;st.watch=false;st.vtrack=null;vid.loop=true;if(st.mon)st.mon.gain.value=1}
+ const[pw,ph]=fit(vid.videoWidth,vid.videoHeight,MAXV);cv.width=pw;cv.height=ph;vid.currentTime=0;vid.play().catch(()=>{});
+ foot.textContent='Saving…';await save('G-Book-Camera-HD.'+ext,blob)}
+
+let netT;
+function banner(t,cls,ms){const n=$('net');n.textContent=t;n.className='net on '+(cls||'');clearTimeout(netT);if(ms)netT=setTimeout(()=>n.classList.remove('on'),ms)}
+addEventListener('offline',()=>banner('Connect to Internet','',0));
+addEventListener('online',()=>{banner('Connected','ok',1500);adsStart()});
+if(!navigator.onLine)banner('Connect to Internet','',0);else adsStart();
+
+async function notifInit(){
+ const N=plug('LocalNotifications');if(!N)return;
+ try{
+  let p=await N.checkPermissions();
+  if(p.display==='prompt'||p.display==='prompt-with-rationale')p=await N.requestPermissions();
+  if(p.display!=='granted')return;
+  try{await N.createChannel({id:'daily',name:'Daily reminder',description:'Daily G-Book Camera reminder',importance:4,visibility:1})}catch(e){}
+  const V=2,pend=await N.getPending();
+  if((pend.notifications||[]).some(n=>n.id===1&&n.extra&&n.extra.v===V))return;
+  await N.schedule({notifications:[{id:1,title:'G-Book Camera ✨',body:'Try G-Book Camera for a better look! Give your photos & videos an iPhone glow.',channelId:'daily',schedule:{on:{hour:10,minute:0},allowWhileIdle:true},extra:{v:V}}]})
+ }catch(e){}}
+setTimeout(notifInit,1500);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&navigator.onLine)adsStart()});
+(function(){try{var s=document.createElement('script');s.src='mp4-muxer.js';s.async=true;document.head.appendChild(s)}catch(e){}})();
+window.gbcIdle=()=>!st.kind&&!st.busy&&!st.exporting;
+window.gbcNotify=m=>{try{toast(m,1200)}catch(e){}};
+window.__gbcBooted=true;
+<\/script>
+</body>
+</html>
+</script>
+</body></html>
