@@ -8,7 +8,7 @@ on:
 env:
   # IMPORTANT: replace with YOUR AdMob APP ID (it contains a "~" tilde, like ca-app-pub-1069125783691383~1234567890).
   # Find it in AdMob > Apps > App settings. The value below is Google's public TEST app id so the build runs safely.
-  ADMOB_APP_ID: ca-app-pub-3940256099942544~3347511713
+  ADMOB_APP_ID: ca-app-pub-1069125783691383~1918252053
 
 jobs:
   build:
