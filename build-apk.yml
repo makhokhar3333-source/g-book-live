@@ -1,0 +1,252 @@
+name: Build Signed Release APK and Play Store AAB
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+env:
+  # IMPORTANT: replace with YOUR AdMob APP ID (it contains a "~" tilde, like ca-app-pub-1069125783691383~1234567890).
+  # Find it in AdMob > Apps > App settings. The value below is Google's public TEST app id so the build runs safely.
+  ADMOB_APP_ID: ca-app-pub-3940256099942544~3347511713
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Create Android project
+        run: npx cap add android
+
+      - name: Add Gallery-scan plugin (so saved videos and photos appear in the Gallery)
+        run: |
+          D=android/app/src/main/java/com/gbookcamera/app
+          mkdir -p "$D"
+          cat > "$D/MediaScanPlugin.java" <<'JAVA'
+          package com.gbookcamera.app;
+
+          import android.media.MediaScannerConnection;
+          import android.os.Environment;
+          import com.getcapacitor.Plugin;
+          import com.getcapacitor.PluginCall;
+          import com.getcapacitor.PluginMethod;
+          import com.getcapacitor.annotation.CapacitorPlugin;
+          import java.io.File;
+
+          @CapacitorPlugin(name = "MediaScan")
+          public class MediaScanPlugin extends Plugin {
+              @PluginMethod
+              public void scan(PluginCall call) {
+                  String path = call.getString("path");
+                  if (path == null) {
+                      call.reject("path required");
+                      return;
+                  }
+                  File f = new File(Environment.getExternalStorageDirectory(), path);
+                  MediaScannerConnection.scanFile(getContext(), new String[] { f.getAbsolutePath() }, null, null);
+                  call.resolve();
+              }
+          }
+          JAVA
+          cat > "$D/MainActivity.java" <<'JAVA'
+          package com.gbookcamera.app;
+
+          import android.os.Bundle;
+          import com.getcapacitor.BridgeActivity;
+
+          public class MainActivity extends BridgeActivity {
+              @Override
+              public void onCreate(Bundle savedInstanceState) {
+                  registerPlugin(MediaScanPlugin.class);
+                  super.onCreate(savedInstanceState);
+              }
+          }
+          JAVA
+
+      - name: Generate app icons
+        continue-on-error: true
+        run: npx --yes @capacitor/assets generate --android
+
+      - name: Configure Android (clean manifest, AdMob, min SDK, version)
+        run: |
+          python3 - <<'PY'
+          import os, re
+          p = 'android/app/src/main/AndroidManifest.xml'
+          s = open(p).read()
+          # Essential permissions only: internet, storage read/write for saving exports (older Android versions only),
+          # and notifications + exact alarm for the daily 10:00 AM reminder.
+          # AdMob's own library adds its required network-state and ad-id entries automatically when the app is built.
+          perms = ''
+          if 'android.permission.INTERNET' not in s:
+              perms += '<uses-permission android:name="android.permission.INTERNET"/>\n    '
+          perms += ('<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29"/>\n'
+                    '    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>\n'
+                    '    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>\n'
+                    '    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>\n    ')
+          s = s.replace('<application', perms + '<application', 1)
+          # Hardening: no backups, no plain-http traffic.
+          s = s.replace('android:allowBackup="true"', 'android:allowBackup="false"')
+          s = s.replace('<application', '<application android:usesCleartextTraffic="false" android:requestLegacyExternalStorage="true"', 1)
+          meta = '<meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="' + os.environ['ADMOB_APP_ID'] + '"/>\n    </application>'
+          s = s.replace('</application>', meta, 1)
+          open(p, 'w').write(s)
+          v = 'android/variables.gradle'
+          t = open(v).read()
+          t = re.sub(r'minSdkVersion = \d+', 'minSdkVersion = 24', t)
+          open(v, 'w').write(t)
+          # Google Play needs a higher versionCode for every upload: use the GitHub run number.
+          g = 'android/app/build.gradle'
+          b = open(g).read()
+          b = re.sub(r'versionCode \d+', 'versionCode ' + os.environ['GITHUB_RUN_NUMBER'], b)
+          b = re.sub(r'versionName "[^"]*"', 'versionName "1.0.' + os.environ['GITHUB_RUN_NUMBER'] + '"', b)
+          open(g, 'w').write(b)
+          PY
+
+      - name: Add MP4 muxer library to the web app
+        run: |
+          if [ -f node_modules/mp4-muxer/build/mp4-muxer.js ]; then
+            cp node_modules/mp4-muxer/build/mp4-muxer.js www/mp4-muxer.js
+          else
+            echo "mp4-muxer build file not found. Contents:"; ls -R node_modules/mp4-muxer | head -n 40; exit 1
+          fi
+
+      - name: Sync web app into Android
+        run: npx cap sync android
+
+      - name: Build release APK and App Bundle (unsigned)
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease bundleRelease --no-daemon
+
+      - name: Prepare signing key
+        id: key
+        env:
+          KS_B64: ${{ secrets.KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
+          KS_ALIAS: ${{ secrets.KEY_ALIAS }}
+        run: |
+          mkdir -p signing dist
+          if [ -n "$KS_B64" ] && [ -n "$KS_PASS" ] && [ -n "$KS_ALIAS" ]; then
+            echo "::add-mask::$KS_PASS"
+            echo "$KS_B64" | base64 -d > signing/release.keystore
+            echo "KEY_ALIAS=$KS_ALIAS" >> "$GITHUB_ENV"
+            echo "KEY_PASS=$KS_PASS" >> "$GITHUB_ENV"
+            echo "generated=false" >> "$GITHUB_OUTPUT"
+            echo "Using your saved keystore from GitHub Secrets."
+          else
+            PASS=$(openssl rand -hex 16)
+            echo "::add-mask::$PASS"
+            keytool -genkeypair -v -keystore signing/release.keystore -alias gbookcamera \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass "$PASS" -keypass "$PASS" \
+              -dname "CN=Malik Ghous Khokhar, OU=G-Book Camera, O=G-Book Camera, C=PK" > /dev/null
+            echo "KEY_ALIAS=gbookcamera" >> "$GITHUB_ENV"
+            echo "KEY_PASS=$PASS" >> "$GITHUB_ENV"
+            echo "generated=true" >> "$GITHUB_OUTPUT"
+            {
+              echo "G-BOOK CAMERA - SIGNING KEY INFO (KEEP PRIVATE, NEVER SHARE)"
+              echo "Package ID : com.gbookcamera.app"
+              echo "Keystore   : release.keystore"
+              echo "Key alias  : gbookcamera"
+              echo "Store pass : $PASS"
+              echo "Key pass   : $PASS"
+              echo ""
+              echo "SAVE release.keystore AND THIS FILE SOMEWHERE SAFE. Android and Google Play need the SAME key for every update."
+              echo "Then add 3 GitHub Secrets (Settings > Secrets and variables > Actions) so future builds reuse it:"
+              echo "  KEYSTORE_BASE64   = the long text in keystore-base64.txt"
+              echo "  KEYSTORE_PASSWORD = $PASS"
+              echo "  KEY_ALIAS         = gbookcamera"
+            } > signing/keystore-info.txt
+            base64 -w 0 signing/release.keystore > signing/keystore-base64.txt
+            echo "Generated a NEW keystore (download it from the Artifacts)."
+          fi
+
+      - name: Sign release App Bundle (.aab)
+        run: |
+          cp android/app/build/outputs/bundle/release/app-release.aab dist/app-release.aab
+          jarsigner -keystore signing/release.keystore \
+            -storepass "$KEY_PASS" -keypass "$KEY_PASS" \
+            -sigalg SHA256withRSA -digestalg SHA-256 \
+            dist/app-release.aab "$KEY_ALIAS" > /dev/null
+          jarsigner -verify dist/app-release.aab | head -n 2
+
+      - name: Align and sign release APK (.apk)
+        run: |
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n 1)
+          UNSIGNED=$(ls android/app/build/outputs/apk/release/*.apk | head -n 1)
+          "$BT/zipalign" -p -f 4 "$UNSIGNED" signing/aligned.apk
+          "$BT/apksigner" sign --ks signing/release.keystore \
+            --ks-key-alias "$KEY_ALIAS" --ks-pass env:KEY_PASS --key-pass env:KEY_PASS \
+            --out dist/app-release.apk signing/aligned.apk
+          "$BT/apksigner" verify --print-certs dist/app-release.apk | head -n 3
+
+      - name: Upload signed release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: G-Book-Camera-Release-APK
+          path: dist/app-release.apk
+
+      - name: Upload signed AAB (for Google Play)
+        uses: actions/upload-artifact@v4
+        with:
+          name: G-Book-Camera-AAB
+          path: dist/app-release.aab
+
+      - name: Upload keystore and password info (first run only)
+        if: steps.key.outputs.generated == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: KEEP-PRIVATE-release-keystore
+          path: |
+            signing/release.keystore
+            signing/keystore-info.txt
+            signing/keystore-base64.txt
+          retention-days: 90
+
+  # Live OTA updates: publishes www/index.html to GitHub Pages so installed apps can fetch it.
+  # One-time setup: repository Settings > Pages > Build and deployment > Source = "GitHub Actions".
+  deploy-pages:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare live site
+        run: |
+          mkdir site
+          cp www/index.html site/index.html
+          touch site/.nojekyll
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Publish to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
