@@ -60,7 +60,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="gbc-version" content="2026111702">
+<meta name="gbc-version" content="2026111703">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>G-Book Camera</title>
 <style>
@@ -149,20 +149,17 @@ transition:opacity .55s ease,transform .55s ease}
 .exposure{font-size:12px;color:#b7d8e7;padding:6px 0}
 .gate{position:fixed;inset:0;z-index:100;background:rgba(3,7,15,.96);display:flex;align-items:center;justify-content:center;padding:24px}
 .gatecard{width:min(100%,360px);background:#111a29;border:1px solid #34435b;border-radius:26px;padding:26px;text-align:center;box-shadow:0 20px 70px #0009}
-.gateicon{font-size:38px;margin-bottom:12px}.gatecard h2{font-size:21px;margin:0 0 10px}.gatecard p{color:#aab6c8;font-size:14px;line-height:1.5}
+.gateicon{font-size:38px;margin-bottom:12px}.gatecard h2{font-size:21px;line-height:1.35;margin:0 0 10px}
 .gatecard button{width:100%;border:0;border-radius:15px;padding:14px;background:linear-gradient(180deg,#8cebff,#1aa7ff);color:#03131c;font:700 16px inherit;margin-top:12px}
-.gatecard .gatemsg{min-height:18px;font-size:12px;color:#ffc7a8;margin-top:10px}
+
 </style>
 </head>
 <body>
 
 <div class="gate" id="notificationGate">
   <div class="gatecard">
-    <div class="gateicon">🔔</div>
     <h2>Allow G-Book Camera to send you notifications?</h2>
-    <p>Enable notifications to receive your daily 8:00 AM camera reminder.</p>
     <button id="allowNotifications" type="button">Allow</button>
-    <div class="gatemsg" id="gateMessage" role="status"></div>
   </div>
 </div>
 
@@ -707,69 +704,79 @@ addEventListener('offline',()=>banner('Connect to Internet','',0));
 addEventListener('online',()=>{banner('Connected','ok',1500);adsStart()});
 if(!navigator.onLine)banner('Connect to Internet','',0);else adsStart();
 
-/* Mandatory notification gate. Web timers are foreground-only; the Android native
-   LocalNotifications bridge is the reliable daily/background scheduler when installed. */
+/* Notification choice gate: entry is never dependent on Web Notification support.
+   Native permission and the repeating 08:00 reminder are attempted in the background. */
 const GATE_KEY='gbc_notifications_granted_v2';
-let reminderTimer=null;
-function nextEight(){const n=new Date(),d=new Date(n);d.setHours(8,0,0,0);if(d<=n)d.setDate(d.getDate()+1);return d}
-function webReminderTimer(){
- clearTimeout(reminderTimer);
- if(!('Notification'in window)||Notification.permission!=='granted')return;
- const fire=()=>{
-  try{new Notification('G-Book Camera • iPhone 18 Pro Look',{body:'Try G-Book Camera for iPhone Look! Capture & enhance crisp 1080p HD photos and videos with natural studio glow today.',icon:makeIcon(180)})}catch(e){}
-  webReminderTimer();
- };
- reminderTimer=setTimeout(fire,Math.max(1000,nextEight().getTime()-Date.now()));
+function safelySaveNotificationChoice(){try{localStorage.setItem(GATE_KEY,'granted')}catch(e){}}
+async function silentlySetupDailyReminder(){
+  // Capacitor LocalNotifications plugin (when included by the native wrapper).
+  try{
+    const C=window.Capacitor;
+    const N=(C&&C.Plugins&&C.Plugins.LocalNotifications)||plug('LocalNotifications');
+    if(N){
+      try{
+        if(typeof N.checkPermissions==='function'){
+          let permission=await N.checkPermissions();
+          if(permission&&permission.display!=='granted'&&typeof N.requestPermissions==='function')
+            permission=await N.requestPermissions();
+        }else if(typeof N.requestPermissions==='function'){
+          await N.requestPermissions();
+        }
+      }catch(e){}
+      try{
+        if(typeof N.createChannel==='function')await N.createChannel({id:'daily',name:'G-Book Camera',description:'G-Book Camera notifications',importance:4,visibility:1});
+      }catch(e){}
+      try{
+        if(typeof N.schedule==='function')await N.schedule({notifications:[{
+          id:1808,
+          title:'G-Book Camera',
+          body:'Open G-Book Camera and create something great.',
+          channelId:'daily',
+          schedule:{on:{hour:8,minute:0},repeats:true,allowWhileIdle:true},
+          extra:{gbcDailyReminder:true,version:4}
+        }]});
+      }catch(e){}
+    }
+  }catch(e){}
+
+  // Optional Android JavaScript bridge exposed by a WebView/native wrapper.
+  try{
+    const A=window.Android||window.GBookCameraBridge;
+    if(A){
+      try{if(typeof A.requestNotificationPermission==='function')await A.requestNotificationPermission()}catch(e){}
+      try{
+        if(typeof A.scheduleDailyNotification==='function')
+          await A.scheduleDailyNotification(8,0,'G-Book Camera','Open G-Book Camera and create something great.');
+      }catch(e){}
+      try{
+        if(typeof A.setNotificationPermissionGranted==='function')
+          await A.setNotificationPermissionGranted(true);
+      }catch(e){}
+    }
+  }catch(e){}
 }
-async function requestNativeNotificationPermission(){
- const N=plug('LocalNotifications');
- if(N){
-  let p=await N.checkPermissions();
-  if(p.display!=='granted')p=await N.requestPermissions();
-  if(p.display!=='granted')throw new Error('Please allow notifications in the Android permission prompt.');
-  try{await N.createChannel({id:'daily',name:'Daily reminder',description:'Daily G-Book Camera reminder',importance:4,visibility:1})}catch(e){}
-  await N.schedule({notifications:[{id:1808,title:'G-Book Camera • iPhone 18 Pro Look',body:'Try G-Book Camera for iPhone Look! Capture & enhance crisp 1080p HD photos and videos with natural studio glow today.',channelId:'daily',schedule:{on:{hour:8,minute:0},repeats:true,allowWhileIdle:true},extra:{gbcDailyReminder:true,version:3}}]});
-  return true;
- }
- /* Optional custom Android WebView bridge. Its implementation must expose a permission
-    method and a daily scheduler; unknown bridge APIs are never guessed. */
- const A=window.Android||window.GBookCameraBridge;
- if(A&&typeof A.requestNotificationPermission==='function'){
-  const ok=await A.requestNotificationPermission();
-  if(ok===false)throw new Error('Android notification permission was not granted.');
-  if(typeof A.scheduleDailyNotification==='function')A.scheduleDailyNotification(8,0,'G-Book Camera • iPhone 18 Pro Look','Try G-Book Camera for iPhone Look! Capture & enhance crisp 1080p HD photos and videos with natural studio glow today.');
- }
- return false;
-}
-async function grantNotificationAccess(){
- const msg=$('gateMessage'),btn=$('allowNotifications');btn.disabled=true;msg.textContent='Requesting notification permission…';
- try{
-  await requestNativeNotificationPermission();
-  if(!('Notification'in window))throw new Error('This WebView does not support Web Notifications. Update the app WebView or enable notifications in Android settings.');
-  let perm=Notification.permission;
-  if(perm!=='granted')perm=await Notification.requestPermission();
-  if(perm!=='granted')throw new Error('Notification permission is required to use G-Book Camera.');
-  localStorage.setItem(GATE_KEY,'granted');
-  try{const A=window.Android||window.GBookCameraBridge;if(A&&typeof A.setNotificationPermissionGranted==='function')A.setNotificationPermissionGranted(true)}catch(e){}
-  $('notificationGate').style.display='none';
-  webReminderTimer();
-  toast('Notifications enabled · Daily reminder at 8:00 AM');
- }catch(e){msg.textContent=(e&&e.message)||'Permission was not granted. Please try again.'}
- finally{btn.disabled=false}
+function grantNotificationAccess(){
+  // Do these first and synchronously: never wait for a native bridge or browser API.
+  safelySaveNotificationChoice();
+  const gate=$('notificationGate');
+  if(gate){gate.style.display='none';gate.setAttribute('aria-hidden','true')}
+  const button=$('allowNotifications');
+  if(button)button.disabled=false;
+  // Native permission/scheduling is best-effort only and cannot block app entry.
+  Promise.resolve().then(()=>silentlySetupDailyReminder()).catch(()=>{});
 }
 function checkNotificationGate(){
- let ok=false;try{ok=localStorage.getItem(GATE_KEY)==='granted'}catch(e){}
- if(!ok||!('Notification'in window)||Notification.permission!=='granted'){
-  $('notificationGate').style.display='flex';
- }else{
-  $('notificationGate').style.display='none';webReminderTimer();
-  /* Re-ensure native repeating reminder on app launch. */
-  requestNativeNotificationPermission().catch(()=>{});
- }
+  let allowed=false;
+  try{allowed=localStorage.getItem(GATE_KEY)==='granted'}catch(e){}
+  const gate=$('notificationGate');
+  if(gate){
+    gate.style.display=allowed?'none':'flex';
+    gate.setAttribute('aria-hidden',allowed?'true':'false');
+  }
+  // Re-attempt scheduling silently for users who previously tapped Allow.
+  if(allowed)Promise.resolve().then(()=>silentlySetupDailyReminder()).catch(()=>{});
 }
 $('allowNotifications').addEventListener('click',grantNotificationAccess);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)webReminderTimer()});
-window.addEventListener('focus',webReminderTimer);
 checkNotificationGate();
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&navigator.onLine)adsStart()});
 try{if(navigator.connection&&navigator.connection.addEventListener)navigator.connection.addEventListener('change',()=>{if(navigator.onLine)adsStart()})}catch(e){}
