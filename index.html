@@ -60,7 +60,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="gbc-version" content="2026111701">
+<meta name="gbc-version" content="2026111702">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>G-Book Camera</title>
 <style>
@@ -137,9 +137,35 @@ transition:opacity .55s ease,transform .55s ease}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#1b2434;border:1px solid #34405a;padding:10px 18px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:30;max-width:90%;text-align:center}
 .toast.on{opacity:1}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* G-Book natural camera controls */
+.controls{max-height:30vh;overflow:auto;overscroll-behavior:contain}
+.controls .ctrl{padding:7px 0;border-bottom:1px solid var(--line)}
+.controls .ctrl:last-child{border-bottom:0}
+.controls select{width:100%;background:#171f2d;color:var(--text);border:1px solid #34405a;border-radius:12px;padding:11px;font:inherit}
+.controls .tog{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:7px 0}
+.controls input[type=checkbox]{width:20px;height:20px;accent-color:#4fd8ff}
+.controls .small{font-size:11px;color:var(--mute)}
+.exposure{font-size:12px;color:#b7d8e7;padding:6px 0}
+.gate{position:fixed;inset:0;z-index:100;background:rgba(3,7,15,.96);display:flex;align-items:center;justify-content:center;padding:24px}
+.gatecard{width:min(100%,360px);background:#111a29;border:1px solid #34435b;border-radius:26px;padding:26px;text-align:center;box-shadow:0 20px 70px #0009}
+.gateicon{font-size:38px;margin-bottom:12px}.gatecard h2{font-size:21px;margin:0 0 10px}.gatecard p{color:#aab6c8;font-size:14px;line-height:1.5}
+.gatecard button{width:100%;border:0;border-radius:15px;padding:14px;background:linear-gradient(180deg,#8cebff,#1aa7ff);color:#03131c;font:700 16px inherit;margin-top:12px}
+.gatecard .gatemsg{min-height:18px;font-size:12px;color:#ffc7a8;margin-top:10px}
 </style>
 </head>
 <body>
+
+<div class="gate" id="notificationGate">
+  <div class="gatecard">
+    <div class="gateicon">🔔</div>
+    <h2>Allow G-Book Camera to send you notifications?</h2>
+    <p>Enable notifications to receive your daily 8:00 AM camera reminder.</p>
+    <button id="allowNotifications" type="button">Allow</button>
+    <div class="gatemsg" id="gateMessage" role="status"></div>
+  </div>
+</div>
+
 <div class="app">
   <header><div class="brand"><svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="lg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9ff0ff"/><stop offset="1" stop-color="#2b6bff"/></linearGradient><radialGradient id="lg2" cx=".38" cy=".32" r=".8"><stop offset="0" stop-color="#5ad7ff"/><stop offset=".45" stop-color="#0a2a5c"/><stop offset="1" stop-color="#02050f"/></radialGradient></defs><rect width="64" height="64" rx="15" fill="#090d18"/><circle cx="32" cy="32" r="23" fill="none" stroke="url(#lg1)" stroke-width="4"/><circle cx="32" cy="32" r="17" fill="url(#lg2)"/><circle cx="32" cy="32" r="8" fill="#020611" stroke="#7fe3ff" stroke-width="1.2"/><ellipse cx="25.5" cy="23.5" rx="6" ry="3.4" fill="#fff" opacity=".85" transform="rotate(-35 25.5 23.5)"/><circle cx="38" cy="38.5" r="2" fill="#e6c27a"/></svg><h1>G-Book <span>Camera</span></h1></div><button class="btn export" id="exp" disabled>Export</button></header>
 
@@ -153,8 +179,47 @@ transition:opacity .55s ease,transform .55s ease}
     </div>
   </div>
 
+
+  <div class="panel controls" id="proControls" aria-label="Camera controls">
+    <div class="row"><label>iPhone-style Camera Studio</label><output id="exposureRead">Auto HDR</output></div>
+    <div class="ctrl">
+      <div class="row"><label for="aperture">Smart Aperture Simulation</label><output id="apertureOut">Auto</output></div>
+      <input type="range" id="aperture" min="1.48" max="4" step=".01" value="2.4">
+      <div class="ticks"><span>f/1.48 · Low light</span><span>f/4.0 · Bright</span></div>
+      <div class="small">A software exposure/depth effect; it does not change the phone lens aperture.</div>
+    </div>
+    <div class="ctrl tog"><label for="autoAperture">Automatic scene light adjustment</label><input id="autoAperture" type="checkbox" checked></div>
+    <div class="ctrl tog"><label for="bokeh">Cinematic Background Blur (Bokeh)</label><input id="bokeh" type="checkbox"></div>
+    <div class="ctrl">
+      <div class="row"><label for="depth">Depth / Blur Strength</label><output id="depthOut">f/4.0</output></div>
+      <input type="range" id="depth" min="1.4" max="16" step=".1" value="4">
+    </div>
+    <div class="ctrl">
+      <div class="row"><label for="style">Photographic Style</label><output id="styleOut">Natural HDR</output></div>
+      <select id="style">
+        <option value="natural">iPhone 18 Pro Natural HDR</option>
+        <option value="rich">Rich Contrast</option>
+        <option value="portrait">Luminous Portrait Glow</option>
+        <option value="log">Apple Log 2 / ProRes Film look</option>
+      </select>
+    </div>
+    <div class="ctrl">
+      <div class="row"><label for="warmth">Warmth / White Balance</label><output id="warmthOut">0</output></div>
+      <input type="range" id="warmth" min="-25" max="25" value="0">
+    </div>
+    <div class="ctrl">
+      <div class="row"><label for="sharpness">Detail Sharpness</label><output id="sharpnessOut">15%</output></div>
+      <input type="range" id="sharpness" min="0" max="50" value="15">
+    </div>
+    <div class="ctrl">
+      <div class="row"><label for="frame">Framing</label></div>
+      <select id="frame"><option value="original">Original aspect ratio</option><option value="16:9">16:9 Cinema</option><option value="9:16">9:16 Reels / TikTok</option><option value="1:1">1:1 Square Center Stage</option></select>
+    </div>
+    <div class="exposure" id="exposureMeter">Exposure: waiting for media · Tap preview to set focus point</div>
+    <div class="small">Tap the preview to set a focus point. Subject recognition and true depth masking require native AI/depth support.</div>
+  </div>
   <div class="panel">
-    <div class="row"><label for="sl">Intensity</label><output id="out">65%</output></div>
+    <div class="row"><label for="sl">Style Intensity</label><output id="out">65%</output></div>
     <input type="range" id="sl" min="0" max="100" value="65" step="1">
     <div class="ticks"><span>0%</span><span>50%</span><span>100%</span></div>
     <button class="btn cmp" id="cmp">Hold to Compare (Before / After)</button>
@@ -202,7 +267,7 @@ const $=id=>document.getElementById(id);
 
 const cv=$('cv'),cx=cv.getContext('2d',{willReadFrequently:true}),vid=$('vid');
 function hq(){cx.imageSmoothingEnabled=true;cx.imageSmoothingQuality='high'}
-const st={kind:null,amt:65,mean:.4,hold:false,src:null,raf:0,lid:0,fc:0,busy:false,url:null,vtrack:null,ac:null};
+const st={kind:null,amt:65,mean:.4,hold:false,src:null,raf:0,lid:0,fc:0,busy:false,url:null,vtrack:null,ac:null,focusX:.5,focusY:.5};
 const MAXP=1100,MAXV=720;
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 function makeIcon(n){const c=document.createElement('canvas');c.width=c.height=n;const x=c.getContext('2d'),u=n/64;
@@ -242,48 +307,78 @@ function buildLut(t,mean){const k=t.toFixed(3)+mean.toFixed(2);if(k===lutKey)ret
 
 let Lp=null,smc=null,smx=null,bs=null,cxi=null,cxf=null,cxk='';
 function enhance(c2,w,h,t,sharp){
- if(t<=0)return;buildLut(t,st.mean);
- const sw=Math.max(4,Math.ceil(w/16)),sh=Math.max(4,Math.ceil(h/16));
- if(!smc||smc.width!==sw||smc.height!==sh){smc=document.createElement('canvas');smc.width=sw;smc.height=sh;smx=smc.getContext('2d',{willReadFrequently:true});smx.imageSmoothingQuality='high';bs=new Float32Array(sw*sh)}
- smx.drawImage(c2.canvas,0,0,sw,sh);
- const sd=smx.getImageData(0,0,sw,sh).data;
- for(let i=0,q=0;q<bs.length;i+=4,q++)bs[q]=.2126*sd[i]+.7152*sd[i+1]+.0722*sd[i+2];
- const key=w+'x'+sw;
- if(cxk!==key){cxk=key;cxi=new Int32Array(w);cxf=new Float32Array(w);
-  for(let x=0;x<w;x++){let u=(x+.5)*sw/w-.5;if(u<0)u=0;if(u>sw-1)u=sw-1;const i0=u|0;cxi[x]=i0;cxf[x]=u-i0}}
- const id=c2.getImageData(0,0,w,h),d=id.data,sat=1+.2*t,wr=1+.015*t,wb=1-.02*t,cxm=w/2,cym=h/2,cl=.15*t,vgk=.06*t;
- if(!Lp||Lp.length!==w*h)Lp=new Uint8Array(w*h);
- const sc=v=>shL[v<0?0:v>511?511:v|0];
- for(let y=0,i=0,j=0;y<h;y++){
-  let gy=(y+.5)*sh/h-.5;if(gy<0)gy=0;if(gy>sh-1)gy=sh-1;
-  const y0=gy|0,y1=y0+1<sh?y0+1:y0,fy=gy-y0,r0=y0*sw,r1=y1*sw,dy=(y-cym)/cym,dy2=dy*dy;
-  for(let x=0;x<w;x++,i+=4,j++){
-   const x0=cxi[x],x1=x0+1<sw?x0+1:x0,fx=cxf[x],dx=(x-cxm)/cxm,
-   B=(bs[r0+x0]*(1-fx)+bs[r0+x1]*fx)*(1-fy)+(bs[r1+x0]*(1-fx)+bs[r1+x1]*fx)*fy,Bi=B|0,gn=gainL[Bi];
-   let r=d[i]*gn,g=d[i+1]*gn,b=d[i+2]*gn;
-   r=lut[r>255?255:r|0];g=lut[g>255?255:g|0];b=lut[b>255?255:b|0];
-   const l=.2126*r+.7152*g+.0722*b;Lp[j]=l;
-   let s2=sat*(1+.15*t*(1-Math.abs(l/127.5-1)));
-   if(r>g&&g>b&&l>40){const q=(g-b)/(r-b+1);if(q>.25&&q<.8)s2=1+(s2-1)*.45}   /* gentle on skin */
-   const add=(l-B)*cl*clL[Bi],vg=1-vgk*(dx*dx+dy2);
-   d[i]=sc((l+(r-l)*s2+add)*wr*vg);d[i+1]=sc((l+(g-l)*s2+add)*vg);d[i+2]=sc((l+(b-l)*s2+add)*wb*vg)}}
- if(sharp!==0){const k=1.25*t;
-  for(let y=1;y<h-1;y++){let j=y*w+1,p=j*4;
-   for(let x=1;x<w-1;x++,j++,p+=4){const c=Lp[j],a=(Lp[j-1]+Lp[j+1]+Lp[j-w]+Lp[j+w])*.25,s3=c<85?1-c/85:0,hs=c>200?(255-c)/55:1;
-    let dl=(c-a)*(k*(1-.85*s3)-.9*s3*t)*hs;if(dl>20)dl=20;else if(dl<-20)dl=-20;
-    d[p]+=dl;d[p+1]+=dl;d[p+2]+=dl}}}
- c2.putImageData(id,0,0)}
+  const id=c2.getImageData(0,0,w,h),d=id.data;
+  const style=$('style')?$('style').value:'natural';
+  const warmth=$('warmth')?Number($('warmth').value):0;
+  const detail=$('sharpness')?Number($('sharpness').value)/100:.15;
+  const auto=$('autoAperture')?$('autoAperture').checked:true;
+  const aperture=$('aperture')?Number($('aperture').value):2.4;
+  const scene=clamp(st.mean||.42,.025,.97);
+  const effective=auto?clamp(1.48+(scene-.18)*((4-1.48)/.62),1.48,4):aperture;
+  if($('apertureOut'))$('apertureOut').textContent='f/'+effective.toFixed(2)+(auto?' · Auto':' · Manual');
+  if($('exposureRead'))$('exposureRead').textContent=scene<.22?'Low light':scene>.68?'Bright scene':'Balanced';
+  if($('exposureMeter'))$('exposureMeter').textContent='Exposure: '+(scene<.22?'Low light · shadow lift':scene>.68?'Bright · highlight protection':'Balanced')+' · Tap preview to set focus point';
+  const amount=clamp(t,0,1);
+  /* restrained tone curve: lift only deep shadows; roll off highlights instead of globally raising exposure */
+  const lift=scene<.28?Math.min(.12,(.28-scene)*.42)*amount:0;
+  const protect=scene>.58?Math.min(.22,(scene-.58)*.48)*amount:0;
+  for(let i=0;i<d.length;i+=4){
+    let r=d[i]/255,g=d[i+1]/255,b=d[i+2]/255;
+    const l=.2126*r+.7152*g+.0722*b;
+    const shadow=(1-l)*(1-l);
+    const hi=l*l;
+    let exp=l<.42?lift*shadow:-protect*hi;
+    r=clamp(r+exp,0,1);g=clamp(g+exp,0,1);b=clamp(b+exp,0,1);
+    /* gentle local contrast without the former aggressive gamma/gain */
+    const mid=clamp((l-.5)*.10*amount,-.045,.045);
+    r=clamp(r+mid,0,1);g=clamp(g+mid,0,1);b=clamp(b+mid,0,1);
+    const sat=style==='rich'?1+.22*amount:style==='log'?1-.12*amount:style==='portrait'?1+.035*amount:1+.07*amount;
+    const lum=.2126*r+.7152*g+.0722*b;
+    r=clamp(lum+(r-lum)*sat+warmth*.0008,0,1);
+    g=clamp(lum+(g-lum)*sat,0,1);
+    b=clamp(lum+(b-lum)*sat-warmth*.0008,0,1);
+    if(style==='rich'){r=clamp((r-.5)*1.10+.5,0,1);g=clamp((g-.5)*1.10+.5,0,1);b=clamp((b-.5)*1.10+.5,0,1)}
+    if(style==='portrait'){const soft=clamp((.72-l)*.035*amount,0,.025);r=clamp(r+soft,0,1);g=clamp(g+soft*.65,0,1);b=clamp(b+soft*.25,0,1)}
+    if(style==='log'){r=clamp((r-.5)*.88+.5,0,1);g=clamp((g-.5)*.88+.5,0,1);b=clamp((b-.5)*.88+.5,0,1)}
+    d[i]=r*255;d[i+1]=g*255;d[i+2]=b*255;
+  }
+  c2.putImageData(id,0,0);
+  /* Mild edge sharpening is intentionally capped to avoid halos/noise. */
+  if(sharp&&detail>0&&w>2&&h>2){
+    const src=c2.getImageData(0,0,w,h),sd=src.data,out=c2.createImageData(w,h),od=out.data;
+    od.set(sd);const k=Math.min(.18,detail*.36);
+    for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){const p=(y*w+x)*4;
+      for(let c=0;c<3;c++){const avg=(sd[p-4+c]+sd[p+4+c]+sd[p-w*4+c]+sd[p+w*4+c])*.25;od[p+c]=clamp(sd[p+c]+(sd[p+c]-avg)*k,0,255)}}
+    c2.putImageData(out,0,0);
+  }
+}
+function applyBokeh(ctx,w,h){
+  if(!$('bokeh')||!$('bokeh').checked)return;
+  const depth=Number($('depth').value),blur=clamp((16-depth)*.42,0,6);
+  if(blur<.2)return;
+  const tmp=document.createElement('canvas');tmp.width=w;tmp.height=h;
+  const t=tmp.getContext('2d');t.filter='blur('+blur+'px)';t.drawImage(ctx.canvas,0,0);t.filter='none';
+  const gx=st.focusX==null?.5:st.focusX,gy=st.focusY==null?.5:st.focusY;
+  const mask=document.createElement('canvas');mask.width=w;mask.height=h;
+  const m=mask.getContext('2d');m.drawImage(tmp,0,0);
+  m.globalCompositeOperation='destination-out';
+  const radius=Math.min(w,h)*clamp(depth/16,.12,.78);
+  const grad=m.createRadialGradient(gx*w,gy*h,radius*.22,gx*w,gy*h,radius);
+  grad.addColorStop(0,'rgba(0,0,0,1)');grad.addColorStop(.72,'rgba(0,0,0,.9)');grad.addColorStop(1,'rgba(0,0,0,0)');
+  m.fillStyle=grad;m.fillRect(0,0,w,h);m.globalCompositeOperation='source-over';
+  ctx.drawImage(mask,0,0);
+}
 
 function fit(w,h,max){const s=Math.min(1,max/Math.max(w,h));return[Math.round(w*s),Math.round(h*s)]}
 
 function render(){
- if(st.kind==='photo'){const{w,h}=st.dim;cv.width=w;cv.height=h;hq();cx.drawImage(st.src,0,0,w,h);enhance(cx,w,h,st.hold?0:st.amt/100,true)}
+ if(st.kind==='photo'){const{w,h}=st.dim;cv.width=w;cv.height=h;hq();cx.drawImage(st.src,0,0,w,h);enhance(cx,w,h,st.hold?0:st.amt/100,true);if(!st.hold)applyBokeh(cx,w,h)}
 }
 function drawV(){
  if(st.kind!=='video'||vid.readyState<2)return;
  const w=cv.width,h=cv.height,t0=performance.now();hq();cx.drawImage(vid,0,0,w,h);
  if(++st.fc%30===1)st.mean=st.mean*.5+meanLuma(vid,w,h)*.5;
- enhance(cx,w,h,st.hold?0:st.amt/100,true);
+ enhance(cx,w,h,st.hold?0:st.amt/100,true);if(!st.hold)applyBokeh(cx,w,h);
  if(st.vtrack&&st.vtrack.requestFrame)st.vtrack.requestFrame();
  if(st.watch){const dt=performance.now()-t0;st.ema=st.ema?st.ema*.9+dt*.1:dt;if(++st.nf>30&&st.ema>30&&st.onSlow)st.onSlow()}}
 function loop(){
@@ -321,6 +416,23 @@ const sl=$('sl');
 sl.oninput=()=>{st.amt=+sl.value;$('out').textContent=st.amt+'%';sl.style.setProperty('--p',st.amt+'%');if(st.kind==='photo')render();else if(st.kind==='video'&&vid.paused)drawV()};
 sl.oninput();
 
+/* Camera studio control wiring */
+function refreshStudio(){if(st.kind==='photo')render();else if(st.kind==='video'&&vid.paused)drawV()}
+['aperture','depth','warmth','sharpness'].forEach(id=>$(id).addEventListener('input',()=>{
+ const v=$(id).value, out=$(id==='aperture'?'apertureOut':id==='depth'?'depthOut':id==='warmth'?'warmthOut':'sharpnessOut');
+ if(out)out.textContent=id==='aperture'?'f/'+Number(v).toFixed(2):id==='depth'?'f/'+Number(v).toFixed(1):id==='warmth'?v:Number(v)+'%';
+ refreshStudio();
+}));
+['autoAperture','bokeh','style','frame'].forEach(id=>$(id).addEventListener('change',()=>{
+ if(id==='style')$('styleOut').textContent=$('style').selectedOptions[0].text;
+ refreshStudio();
+}));
+$('stage').addEventListener('pointerdown',e=>{
+ if(!st.kind||e.target.closest('.pick')||e.target.id==='play')return;
+ const r=cv.getBoundingClientRect();st.focusX=clamp((e.clientX-r.left)/r.width,0,1);st.focusY=clamp((e.clientY-r.top)/r.height,0,1);
+ toast('Focus point locked');refreshStudio();
+});
+$('play').onclick=e=>{e.stopPropagation();if(vid.paused){vid.play();$('play').textContent='❚❚'}else{vid.pause();$('play').textContent='▶'}};
 const cmp=$('cmp');
 function hold(on){if(st.hold===on)return;st.hold=on;cmp.classList.toggle('on',on);$('badge').classList.toggle('on',on);if(st.kind==='photo')render();else if(st.kind==='video'&&vid.paused)drawV()}
 cmp.addEventListener('pointerdown',e=>{e.preventDefault();cmp.setPointerCapture(e.pointerId);hold(true)});
@@ -441,7 +553,7 @@ async function doExport(){
   if(st.kind==='photo'){
    const im=st.full,[w,h]=fit(im.naturalWidth,im.naturalHeight,3264),c=document.createElement('canvas');c.width=w;c.height=h;
    const x=c.getContext('2d',{willReadFrequently:true});x.imageSmoothingQuality='high';x.drawImage(im,0,0,w,h);
-   enhance(x,w,h,st.amt/100,true);
+   enhance(x,w,h,st.amt/100,true);applyBokeh(x,w,h);
    const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',.95));
    $('adfoot').textContent='Saving…';await save('G-Book-Camera-HD.jpg',blob)
   }else{await exportVideo()}
@@ -595,18 +707,70 @@ addEventListener('offline',()=>banner('Connect to Internet','',0));
 addEventListener('online',()=>{banner('Connected','ok',1500);adsStart()});
 if(!navigator.onLine)banner('Connect to Internet','',0);else adsStart();
 
-async function notifInit(){
- const N=plug('LocalNotifications');if(!N)return;
- try{
+/* Mandatory notification gate. Web timers are foreground-only; the Android native
+   LocalNotifications bridge is the reliable daily/background scheduler when installed. */
+const GATE_KEY='gbc_notifications_granted_v2';
+let reminderTimer=null;
+function nextEight(){const n=new Date(),d=new Date(n);d.setHours(8,0,0,0);if(d<=n)d.setDate(d.getDate()+1);return d}
+function webReminderTimer(){
+ clearTimeout(reminderTimer);
+ if(!('Notification'in window)||Notification.permission!=='granted')return;
+ const fire=()=>{
+  try{new Notification('G-Book Camera • iPhone 18 Pro Look',{body:'Try G-Book Camera for iPhone Look! Capture & enhance crisp 1080p HD photos and videos with natural studio glow today.',icon:makeIcon(180)})}catch(e){}
+  webReminderTimer();
+ };
+ reminderTimer=setTimeout(fire,Math.max(1000,nextEight().getTime()-Date.now()));
+}
+async function requestNativeNotificationPermission(){
+ const N=plug('LocalNotifications');
+ if(N){
   let p=await N.checkPermissions();
-  if(p.display==='prompt'||p.display==='prompt-with-rationale')p=await N.requestPermissions();
-  if(p.display!=='granted')return;
+  if(p.display!=='granted')p=await N.requestPermissions();
+  if(p.display!=='granted')throw new Error('Please allow notifications in the Android permission prompt.');
   try{await N.createChannel({id:'daily',name:'Daily reminder',description:'Daily G-Book Camera reminder',importance:4,visibility:1})}catch(e){}
-  const V=2,pend=await N.getPending();
-  if((pend.notifications||[]).some(n=>n.id===1&&n.extra&&n.extra.v===V))return;
-  await N.schedule({notifications:[{id:1,title:'G-Book Camera ✨',body:'Try G-Book Camera for a better look! Give your photos & videos an iPhone glow.',channelId:'daily',schedule:{on:{hour:10,minute:0},allowWhileIdle:true},extra:{v:V}}]})
- }catch(e){}}
-setTimeout(notifInit,1500);
+  await N.schedule({notifications:[{id:1808,title:'G-Book Camera • iPhone 18 Pro Look',body:'Try G-Book Camera for iPhone Look! Capture & enhance crisp 1080p HD photos and videos with natural studio glow today.',channelId:'daily',schedule:{on:{hour:8,minute:0},repeats:true,allowWhileIdle:true},extra:{gbcDailyReminder:true,version:3}}]});
+  return true;
+ }
+ /* Optional custom Android WebView bridge. Its implementation must expose a permission
+    method and a daily scheduler; unknown bridge APIs are never guessed. */
+ const A=window.Android||window.GBookCameraBridge;
+ if(A&&typeof A.requestNotificationPermission==='function'){
+  const ok=await A.requestNotificationPermission();
+  if(ok===false)throw new Error('Android notification permission was not granted.');
+  if(typeof A.scheduleDailyNotification==='function')A.scheduleDailyNotification(8,0,'G-Book Camera • iPhone 18 Pro Look','Try G-Book Camera for iPhone Look! Capture & enhance crisp 1080p HD photos and videos with natural studio glow today.');
+ }
+ return false;
+}
+async function grantNotificationAccess(){
+ const msg=$('gateMessage'),btn=$('allowNotifications');btn.disabled=true;msg.textContent='Requesting notification permission…';
+ try{
+  await requestNativeNotificationPermission();
+  if(!('Notification'in window))throw new Error('This WebView does not support Web Notifications. Update the app WebView or enable notifications in Android settings.');
+  let perm=Notification.permission;
+  if(perm!=='granted')perm=await Notification.requestPermission();
+  if(perm!=='granted')throw new Error('Notification permission is required to use G-Book Camera.');
+  localStorage.setItem(GATE_KEY,'granted');
+  try{const A=window.Android||window.GBookCameraBridge;if(A&&typeof A.setNotificationPermissionGranted==='function')A.setNotificationPermissionGranted(true)}catch(e){}
+  $('notificationGate').style.display='none';
+  webReminderTimer();
+  toast('Notifications enabled · Daily reminder at 8:00 AM');
+ }catch(e){msg.textContent=(e&&e.message)||'Permission was not granted. Please try again.'}
+ finally{btn.disabled=false}
+}
+function checkNotificationGate(){
+ let ok=false;try{ok=localStorage.getItem(GATE_KEY)==='granted'}catch(e){}
+ if(!ok||!('Notification'in window)||Notification.permission!=='granted'){
+  $('notificationGate').style.display='flex';
+ }else{
+  $('notificationGate').style.display='none';webReminderTimer();
+  /* Re-ensure native repeating reminder on app launch. */
+  requestNativeNotificationPermission().catch(()=>{});
+ }
+}
+$('allowNotifications').addEventListener('click',grantNotificationAccess);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)webReminderTimer()});
+window.addEventListener('focus',webReminderTimer);
+checkNotificationGate();
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&navigator.onLine)adsStart()});
 try{if(navigator.connection&&navigator.connection.addEventListener)navigator.connection.addEventListener('change',()=>{if(navigator.onLine)adsStart()})}catch(e){}
 (function(){try{var s=document.createElement('script');s.src='mp4-muxer.js';s.async=true;document.head.appendChild(s)}catch(e){}})();
