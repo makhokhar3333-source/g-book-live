@@ -60,7 +60,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="gbc-version" content="2026111804">
+<meta name="gbc-version" content="2026111805">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>G-Book Camera</title>
 <style>
@@ -234,6 +234,11 @@ input[type=range]::-moz-range-thumb{width:28px;height:28px;border:0;border-radiu
   background:linear-gradient(180deg,#8cebff,#1aa7ff);
   color:#03131c;font:700 16px inherit;margin-top:12px;cursor:pointer
 }
+.gatecard button.gskip{
+  width:auto;min-height:0;background:transparent;color:var(--mute);
+  font:500 13.5px inherit;margin-top:14px;padding:6px 14px
+}
+.gatecard button.gskip:active{opacity:.7;transform:scale(.97)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -243,6 +248,7 @@ input[type=range]::-moz-range-thumb{width:28px;height:28px;border:0;border-radiu
   <div class="gatecard">
     <h2>Allow G-Book Camera to send you notifications?</h2>
     <button id="allowNotifications" type="button">Allow</button>
+    <button id="skipNotifications" class="gskip" type="button">Not now</button>
   </div>
 </div>
 
@@ -1512,17 +1518,24 @@ function grantNotificationAccess(){
   if(gate){gate.style.display='none';gate.setAttribute('aria-hidden','true')}
   Promise.resolve().then(()=>silentlySetupDailyReminder()).catch(()=>{});
 }
+function dismissNotificationGate(){
+  try{localStorage.setItem(GATE_KEY,'dismissed')}catch(e){}
+  const gate=$('notificationGate');
+  if(gate){gate.style.display='none';gate.setAttribute('aria-hidden','true')}
+}
 function checkNotificationGate(){
-  let allowed=false;
-  try{allowed=localStorage.getItem(GATE_KEY)==='granted'}catch(e){}
+  let choice=null;
+  try{choice=localStorage.getItem(GATE_KEY)}catch(e){}
   const gate=$('notificationGate');
   if(gate){
-    gate.style.display=allowed?'none':'flex';
-    gate.setAttribute('aria-hidden',allowed?'true':'false');
+    const hide=choice==='granted'||choice==='dismissed';
+    gate.style.display=hide?'none':'flex';
+    gate.setAttribute('aria-hidden',hide?'true':'false');
   }
-  if(allowed)Promise.resolve().then(()=>silentlySetupDailyReminder()).catch(()=>{});
+  if(choice==='granted')Promise.resolve().then(()=>silentlySetupDailyReminder()).catch(()=>{});
 }
 $('allowNotifications').addEventListener('click',grantNotificationAccess);
+$('skipNotifications').addEventListener('click',dismissNotificationGate);
 checkNotificationGate();
 
 (function(){try{var s=document.createElement('script');s.src='mp4-muxer.js';s.async=true;s.onerror=function(){if(!window.Mp4Muxer&&navigator.onLine){var c=document.createElement('script');c.src='https://cdn.jsdelivr.net/npm/mp4-muxer@5.1.3/build/mp4-muxer.min.js';c.async=true;document.head.append(c)}};document.head.append(s)}catch(e){}})();
