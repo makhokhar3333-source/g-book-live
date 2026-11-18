@@ -60,7 +60,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="gbc-version" content="2026111801">
+<meta name="gbc-version" content="2026111804">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>G-Book Camera</title>
 <style>
@@ -287,7 +287,7 @@ input[type=range]::-moz-range-thumb{width:28px;height:28px;border:0;border-radiu
   </div>
 </div>
 
-<input type="file" id="fg" accept="image/*,video/*" hidden>
+<input type="file" id="fg" accept="image/*,video/*" style="position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;pointer-events:none">
 <video id="vid" playsinline loop preload="auto" style="display:none"></video>
 
 <div class="ad" id="ad">
@@ -335,9 +335,9 @@ const $=id=>document.getElementById(id);
 const cv=$('cv'),vid=$('vid');
 const st={
   kind:null,amt:70,mean:0.42,p90:0.75,hold:false,
-  src:null,full:null,dim:{w:0,h:0},raf:0,lid:0,fc:0,
+  src:null,full:null,dim:{w:0,h:0},raf:0,lid:0,seq:0,fc:0,
   busy:false,exporting:false,wasPlaying:false,
-  url:null,imgUrl:null,file:null,vtrack:null,ac:null,asrc:null,mon:null,adst:null
+  url:null,file:null,vtrack:null,ac:null,asrc:null,mon:null,adst:null
 };
 const MAXP=1280,MAXV=960;
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
@@ -424,7 +424,11 @@ void main(){
 }`;
 
 const FS_SRC=`
+#ifdef GL_FRAGMENT_PRECISION_HIGH
 precision highp float;
+#else
+precision mediump float;
+#endif
 uniform sampler2D uTex;
 uniform vec2 uTexel;
 uniform float uAmt;
@@ -438,73 +442,103 @@ void main(){
   vec3 orig=texture2D(uTex,vUv).rgb;
   if(uAmt<=0.001){gl_FragColor=vec4(orig,1.0);return;}
 
-  vec3 n=texture2D(uTex,clamp(vUv+vec2(0.0,-uTexel.y),0.0,1.0)).rgb;
-  vec3 s=texture2D(uTex,clamp(vUv+vec2(0.0, uTexel.y),0.0,1.0)).rgb;
-  vec3 e=texture2D(uTex,clamp(vUv+vec2( uTexel.x,0.0),0.0,1.0)).rgb;
-  vec3 w=texture2D(uTex,clamp(vUv+vec2(-uTexel.x,0.0),0.0,1.0)).rgb;
-  vec3 avg4=0.25*(n+s+e+w);
+  /* Fine 1.25px tap for 48MP crisp sharpening + wider 3.5px tap for 3D local micro-contrast */
+  vec2 s1=uTexel*1.25;
+  vec3 n1=texture2D(uTex,clamp(vUv+vec2(0.0,-s1.y),0.0,1.0)).rgb;
+  vec3 s_1=texture2D(uTex,clamp(vUv+vec2(0.0, s1.y),0.0,1.0)).rgb;
+  vec3 e1=texture2D(uTex,clamp(vUv+vec2( s1.x,0.0),0.0,1.0)).rgb;
+  vec3 w1=texture2D(uTex,clamp(vUv+vec2(-s1.x,0.0),0.0,1.0)).rgb;
+  vec3 avgFine=0.25*(n1+s_1+e1+w1);
+
+  vec2 s2=uTexel*3.5;
+  vec3 n2=texture2D(uTex,clamp(vUv+vec2(0.0,-s2.y),0.0,1.0)).rgb;
+  vec3 s_2=texture2D(uTex,clamp(vUv+vec2(0.0, s2.y),0.0,1.0)).rgb;
+  vec3 e2=texture2D(uTex,clamp(vUv+vec2( s2.x,0.0),0.0,1.0)).rgb;
+  vec3 w2=texture2D(uTex,clamp(vUv+vec2(-s2.x,0.0),0.0,1.0)).rgb;
+  vec3 avgWide=0.25*(n2+s_2+e2+w2);
 
   float l=luma(orig);
-  float lAvg=luma(avg4);
-  float detail=l-lAvg;
+  float lFine=luma(avgFine);
+  float lWide=luma(avgWide);
+  float fineDetail=l-lFine;
+  float localClarity=l-lWide;
 
-  /* 1. Smart Auto-Aperture: f/1.48 low-light shadow lift + f/4.0 highlight protection */
-  float lowLight=clamp((0.36-uMean)/0.28,0.0,1.0);
-  float brightScene=clamp((uP90-0.72)/0.24,0.0,1.0);
+  /* 1. Strict Scene-Adaptive Exposure:
+        - Bright/Outdoor (uMean > 0.45): ZERO boost; activate f/4.0 Highlight Recovery
+        - Dark/Night (uMean < 0.35): f/1.48 clean shadow lift without gray haze */
+  float nightBoost=clamp((0.35-uMean)/0.24,0.0,1.0);
+  float brightScene=clamp((uMean-0.45)/0.28,0.0,1.0);
+  float hiScene=clamp((uP90-0.68)/0.25,0.0,1.0);
+  float outdoorProtect=max(brightScene,hiScene*0.85);
 
-  float shadowWeight=pow(clamp(1.0-l,0.0,1.0),2.15)*smoothstep(0.006,0.075,l+0.018);
-  float hiWeight=smoothstep(0.56,0.97,l);
-  float lift=(0.14+0.42*lowLight)*uAmt;
-  float protect=(0.10+0.22*brightScene)*uAmt;
+  vec3 c=orig;
 
-  vec3 c=orig*(1.0+lift*shadowWeight-protect*hiWeight);
+  /* Night/Low-light shadow recovery ONLY when uMean < 0.35 */
+  if(nightBoost>0.001){
+    float sw=pow(clamp(1.0-l,0.0,1.0),2.15)*smoothstep(0.015,0.12,l);
+    c*=1.0+0.62*nightBoost*uAmt*sw;
+  }
 
-  /* Soft highlight shoulder compression so bright skies & speculars never blow out */
+  /* Bright/Outdoor f/4.0 Highlight Recovery & Midtone Anchoring (never adds white haze) */
+  float hiMask=smoothstep(0.50,0.98,l);
+  float hiPull=(0.12+0.22*outdoorProtect)*uAmt*hiMask;
+  c*=(1.0-hiPull);
+
+  /* Filmic highlight shoulder roll-off so white buildings & skies regain crisp detail */
   float l1=luma(c);
-  if(l1>0.74){
-    float over=(l1-0.74)/0.26;
-    float compressed=0.74+0.26*(1.0-exp(-1.35*over))/0.7408;
+  if(l1>0.64){
+    float over=(l1-0.64)/0.36;
+    float compressed=0.64+0.36*(1.0-exp(-1.55*over))/0.7877;
     c*=compressed/max(l1,0.0001);
   }
 
-  /* 2. Skin-tone studio glow + micro-smoothing with crisp feature preservation */
+  /* Slight midtone grounding in bright scenes so subjects never look pale */
+  float midToneMask=smoothstep(0.15,0.45,l)*(1.0-smoothstep(0.55,0.90,l));
+  c*=1.0-0.06*brightScene*uAmt*midToneMask;
+
+  /* 2. Deep Black-Point Anchor & Rich Contrast (hair, sunglasses, dark clothes pop in 3D) */
+  float blackDepth=0.028*(1.0-0.75*nightBoost)*uAmt;
+  c=max(c-vec3(blackDepth)*smoothstep(0.35,0.0,l),0.0);
+  vec3 sCurve=c*c*(3.0-2.0*c);
+  c=mix(c,sCurve,(0.34+0.14*outdoorProtect)*uAmt);
+
+  /* 3. Local Micro-Contrast (3D separation on architecture, foliage & faces) */
+  c=clamp(c+localClarity*(0.32*uAmt)*(1.0-0.3*hiMask),0.0,1.0);
+
+  /* 4. Natural Golden Skin Tone (Multiplicative warmth - rich, never pale or milky) */
   float maxC=max(c.r,max(c.g,c.b));
   float minC=min(c.r,min(c.g,c.b));
   float satC=maxC-minC;
-  float isSkin=smoothstep(0.035,0.16,c.r-c.b)
-              *smoothstep(0.008,0.09,c.r-c.g)
-              *smoothstep(0.16,0.42,l)
-              *(1.0-smoothstep(0.84,0.97,l))
-              *smoothstep(0.04,0.22,satC);
+  float lCur=luma(c);
+  float isSkin=smoothstep(0.025,0.15,c.r-c.b)
+              *smoothstep(0.005,0.08,c.r-c.g)
+              *smoothstep(0.10,0.30,lCur)
+              *(1.0-smoothstep(0.84,0.97,lCur))
+              *smoothstep(0.03,0.20,satC);
 
-  /* Smooth subtle sensor noise in skin midtones while keeping eyes/hair edges razor-sharp */
-  float microDetail=1.0-smoothstep(0.018,0.055,abs(detail));
-  c=mix(c,avg4*(1.0+lift*shadowWeight-protect*hiWeight),0.20*uAmt*isSkin*microDetail);
+  vec3 skinMult=vec3(1.0+0.075*uAmt,1.0+0.022*uAmt,1.0-0.068*uAmt);
+  float skinBrightCheck=1.0-0.065*outdoorProtect*uAmt*smoothstep(0.56,0.88,lCur);
+  c=mix(c,clamp(c*skinMult*skinBrightCheck,0.0,1.0),isSkin);
 
-  /* 3. 48MP-style crisp edge-aware detail clarity */
-  float edgeGate=smoothstep(0.007,0.032,abs(detail));
-  float sharpStr=mix(0.65,0.34,isSkin*microDetail);
-  float sharpDelta=clamp(detail*sharpStr*edgeGate*uAmt,-0.10,0.10);
+  /* Subtle warm golden-hour balance without raising brightness */
+  vec3 wbMult=vec3(1.0+0.025*uAmt,1.0+0.006*uAmt,1.0-0.028*uAmt);
+  c=clamp(c*mix(vec3(1.0),wbMult,1.0-0.55*hiMask),0.0,1.0);
+
+  /* 5. Clean Smart Vibrance (vivid greens & sky blues without neon clipping) */
+  float curSat=max(c.r,max(c.g,c.b))-min(c.r,min(c.g,c.b));
+  float vib=(0.28+0.10*outdoorProtect)*(1.0-0.42*curSat)*(1.0-0.30*isSkin)*uAmt;
+  float lSat=luma(c);
+  c=clamp(mix(vec3(lSat),c,1.0+vib),0.0,1.0);
+
+  /* 6. Crisp 48MP-Style Unsharp Clarity (razor-sharp eyes, hair & buildings) */
+  float edgeGate=smoothstep(0.006,0.026,abs(fineDetail));
+  float sharpStr=mix(1.18,0.68,isSkin*(1.0-smoothstep(0.025,0.07,abs(fineDetail))));
+  float sharpDelta=clamp(fineDetail*sharpStr*edgeGate*uAmt,-0.16,0.16);
   c=clamp(c+sharpDelta*(c/max(luma(c),0.08)*0.35+0.65),0.0,1.0);
 
-  /* 4. Warm studio key-light glow on skin & natural golden-hour balance */
-  float skinMid=isSkin*smoothstep(0.14,0.42,l)*(1.0-smoothstep(0.70,0.93,l));
-  c+=vec3(0.052,0.034,0.011)*skinMid*uAmt;
-  c+=vec3(0.015,0.005,-0.013)*uAmt*(1.0-hiWeight*0.75);
-
-  /* 5. Natural HDR rich contrast + smart vibrance */
-  vec3 sCurve=c*c*(3.0-2.0*c);
-  c=mix(c,sCurve,0.24*uAmt);
-  c-=vec3(0.012*uAmt*(1.0-l));
-
-  float curSat=max(c.r,max(c.g,c.b))-min(c.r,min(c.g,c.b));
-  float vib=0.20*(1.0-curSat)*(1.0-0.55*isSkin)*uAmt;
-  float lFinal=luma(c);
-  c=mix(vec3(lFinal),c,1.0+vib);
-
-  /* 6. Subtle flagship prime-lens depth pop (gentle edge falloff) */
+  /* 7. Subtle optical vignette for 3D subject focus */
   float dist=length((vUv-0.5)*vec2(1.0,0.86));
-  float vig=1.0-0.13*uAmt*smoothstep(0.32,0.96,dist);
+  float vig=1.0-0.14*uAmt*smoothstep(0.38,0.98,dist);
   c=clamp(c*vig,0.0,1.0);
 
   gl_FragColor=vec4(c,1.0);
@@ -547,8 +581,13 @@ function createGLRenderer(canvas){
     uP90:gl.getUniformLocation(prog,'uP90')
   };
   gl.uniform1i(loc.uTex,0);
+  const maxTex=gl.getParameter(gl.MAX_TEXTURE_SIZE)||2048;
 
   return{
+    maxTex,
+    dispose(){
+      try{const ext=gl.getExtension('WEBGL_lose_context');if(ext)ext.loseContext()}catch(e){}
+    },
     render(source,w,h,amt,mean,p90){
       if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
       gl.viewport(0,0,w,h);
@@ -569,22 +608,63 @@ let cpuPreviewCtx=gpuPreview?null:cv.getContext('2d',{willReadFrequently:true});
 function cpuEnhance(ctx,w,h,amt,mean,p90){
   if(amt<=0.001)return;
   const id=ctx.getImageData(0,0,w,h),d=id.data;
-  const lowLight=clamp((0.36-mean)/0.28,0,1);
-  const brightScene=clamp((p90-0.72)/0.24,0,1);
-  const lift=(0.14+0.42*lowLight)*amt;
-  const protect=(0.10+0.22*brightScene)*amt;
+  const nightBoost=clamp((0.35-mean)/0.24,0,1);
+  const brightScene=clamp((mean-0.45)/0.28,0,1);
+  const hiScene=clamp((p90-0.68)/0.25,0,1);
+  const outdoorProtect=Math.max(brightScene,hiScene*0.85);
+  const blackDepth=0.028*(1-0.75*nightBoost)*amt;
+  const curveStr=(0.34+0.14*outdoorProtect)*amt;
   for(let i=0;i<d.length;i+=4){
     let r=d[i]/255,g=d[i+1]/255,b=d[i+2]/255;
     const l=0.2126*r+0.7152*g+0.0722*b;
-    const sw=Math.pow(1-l,2.15),hw=l>0.56?(l-0.56)/0.44:0;
-    const k=1+lift*sw-protect*hw*hw;
-    r=clamp(r*k,0,1);g=clamp(g*k,0,1);b=clamp(b*k,0,1);
-    const isSkin=(r-b>0.05&&r-g>0.015&&l>0.18&&l<0.86)?1:0;
-    if(isSkin){r=clamp(r+0.045*amt,0,1);g=clamp(g+0.028*amt,0,1);b=clamp(b+0.008*amt,0,1);}
-    r=clamp(r+0.012*amt,0,1);b=clamp(b-0.01*amt,0,1);
-    d[i]=r*255;d[i+1]=g*255;d[i+2]=b*255;
+    if(nightBoost>0.001&&l>0.015){
+      const sw=Math.pow(1-l,2.15)*clamp((l-0.015)/0.105,0,1);
+      const k=1+0.62*nightBoost*amt*sw;
+      r*=k;g*=k;b*=k;
+    }
+    const hiMask=clamp((l-0.50)/0.48,0,1);
+    const hiPull=1-(0.12+0.22*outdoorProtect)*amt*hiMask;
+    r*=hiPull;g*=hiPull;b*=hiPull;
+    const l1=0.2126*r+0.7152*g+0.0722*b;
+    if(l1>0.64){
+      const over=(l1-0.64)/0.36;
+      const comp=(0.64+0.36*(1-Math.exp(-1.55*over))/0.7877)/Math.max(l1,0.0001);
+      r*=comp;g*=comp;b*=comp;
+    }
+    const bd=blackDepth*clamp((0.35-l)/0.35,0,1);
+    r=clamp(r-bd,0,1);g=clamp(g-bd,0,1);b=clamp(b-bd,0,1);
+    r+=(r*r*(3-2*r)-r)*curveStr;
+    g+=(g*g*(3-2*g)-g)*curveStr;
+    b+=(b*b*(3-2*b)-b)*curveStr;
+    const lCur=0.2126*r+0.7152*g+0.0722*b;
+    const isSkin=(r-b>0.04&&r-g>0.01&&lCur>0.12&&lCur<0.90)?1:0;
+    if(isSkin){
+      const sb=1-0.065*outdoorProtect*amt*clamp((lCur-0.56)/0.32,0,1);
+      r=clamp(r*(1+0.075*amt)*sb,0,1);
+      g=clamp(g*(1+0.022*amt)*sb,0,1);
+      b=clamp(b*(1-0.068*amt)*sb,0,1);
+    }
+    const lSat=0.2126*r+0.7152*g+0.0722*b;
+    const vib=1+(0.26+0.08*outdoorProtect)*(isSkin?0.7:1)*amt;
+    d[i]=clamp(lSat+(r-lSat)*vib,0,1)*255;
+    d[i+1]=clamp(lSat+(g-lSat)*vib,0,1)*255;
+    d[i+2]=clamp(lSat+(b-lSat)*vib,0,1)*255;
   }
   ctx.putImageData(id,0,0);
+  if(w>2&&h>2){
+    const sd=new Uint8ClampedArray(d),k=0.45*amt;
+    for(let y=1;y<h-1;y++){
+      for(let x=1;x<w-1;x++){
+        const p=(y*w+x)*4;
+        for(let c=0;c<3;c++){
+          const avg=(sd[p-4+c]+sd[p+4+c]+sd[p-w*4+c]+sd[p+w*4+c])*0.25;
+          const diff=sd[p+c]-avg;
+          if(Math.abs(diff)>3)d[p+c]=clamp(sd[p+c]+clamp(diff*k,-32,32),0,255);
+        }
+      }
+    }
+    ctx.putImageData(id,0,0);
+  }
 }
 
 function drawFrame(source,w,h,amt,mean,p90){
@@ -650,42 +730,155 @@ function show(kind){
   }
 }
 
-$('bg').onclick=()=>$('fg').click();
-$('fg').onchange=e=>{
-  const f=e.target.files[0];e.target.value='';
-  if(!f)return;
-  const n=f.name||'',
-        isV=f.type.startsWith('video')||/\.(mp4|mov|m4v|webm|3gp|mkv|avi)$/i.test(n),
-        isI=f.type.startsWith('image')||/\.(jpe?g|png|webp|gif|bmp|heic|heif|avif)$/i.test(n);
-  if(isV)loadVideo(f);else if(isI)loadPhoto(f);else toast('Please pick a photo or video file.',3200);
-};
+$('bg').onclick=()=>{const fg=$('fg');fg.value='';fg.click()};
 
-function loadPhoto(f){
-  vid.pause();
-  if(st.imgUrl)URL.revokeObjectURL(st.imgUrl);
-  st.imgUrl=URL.createObjectURL(f);
-  const img=new Image();
-  img.onload=()=>{
-    const[w,h]=fit(img.naturalWidth,img.naturalHeight,MAXP);
-    st.src=img;st.full=img;st.dim={w,h};
-    const s=analyzeScene(img);st.mean=s.mean;st.p90=s.p90;
-    show('photo');
-  };
-  img.onerror=()=>toast('Could not open that photo.');
-  img.src=st.imgUrl;
+function readDataUrl(f){
+  return new Promise((res,rej)=>{
+    const r=new FileReader();
+    r.onload=()=>typeof r.result==='string'?res(r.result):rej(new Error('Read failed'));
+    r.onerror=()=>rej(r.error||new Error('Read failed'));
+    r.readAsDataURL(f);
+  });
 }
 
-function loadVideo(f){
-  if(st.url)URL.revokeObjectURL(st.url);
-  st.url=URL.createObjectURL(f);st.file=f;
-  vid.onloadeddata=()=>{
-    const[w,h]=fit(vid.videoWidth,vid.videoHeight,MAXV);
-    st.dim={w,h};cv.width=w;cv.height=h;st.fc=0;
-    const s=analyzeScene(vid);st.mean=s.mean;st.p90=s.p90;
-    show('video');
+async function detectKind(f){
+  const t=(f.type||'').toLowerCase().trim(),n=f.name||'';
+  if(t.startsWith('image/'))return'photo';
+  if(t.startsWith('video/'))return'video';
+  if(/\.(jpe?g|png|webp|gif|bmp|heic|heif|avif|tiff?|ico|dng)$/i.test(n))return'photo';
+  if(/\.(mp4|mov|m4v|webm|3gp|3g2|mkv|avi|ts|mts|m2ts|flv|wmv)$/i.test(n))return'video';
+  try{
+    const b=new Uint8Array(await f.slice(0,32).arrayBuffer());
+    if(b.length>=3&&b[0]===0xff&&b[1]===0xd8&&b[2]===0xff)return'photo';
+    if(b.length>=4&&b[0]===0x89&&b[1]===0x50&&b[2]===0x4e&&b[3]===0x47)return'photo';
+    if(b.length>=4&&b[0]===0x47&&b[1]===0x49&&b[2]===0x46&&b[3]===0x38)return'photo';
+    if(b.length>=2&&b[0]===0x42&&b[1]===0x4d)return'photo';
+    if(b.length>=4&&b[0]===0x1a&&b[1]===0x45&&b[2]===0xdf&&b[3]===0xa3)return'video';
+    if(b.length>=12&&b[0]===0x52&&b[1]===0x49&&b[2]===0x46&&b[3]===0x46){
+      const s=String.fromCharCode(b[8],b[9],b[10],b[11]);
+      if(s==='WEBP')return'photo';
+      if(s==='AVI ')return'video';
+    }
+    if(b.length>=12&&b[4]===0x66&&b[5]===0x74&&b[6]===0x79&&b[7]===0x70){
+      const br=String.fromCharCode(b[8],b[9],b[10],b[11]).toLowerCase();
+      if(/^(heic|heix|hevc|hevx|mif1|msf1|avif|avis)$/.test(br))return'photo';
+      return'video';
+    }
+  }catch(e){}
+  return'unknown';
+}
+
+function loadImgSrc(src){
+  return new Promise((res,rej)=>{
+    const img=new Image();
+    img.onload=async()=>{
+      try{if(img.decode)await img.decode().catch(()=>{})}catch(e){}
+      if(img.naturalWidth>0&&img.naturalHeight>0)res(img);
+      else rej(new Error('Empty image'));
+    };
+    img.onerror=()=>rej(new Error('Image load failed'));
+    img.src=src;
+  });
+}
+
+function toCanvas(src,w,h){
+  const c=document.createElement('canvas');c.width=w;c.height=h;
+  const x=c.getContext('2d');x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';
+  x.drawImage(src,0,0,w,h);
+  return c;
+}
+
+function resetMedia(){
+  st.lid++;cancelAnimationFrame(st.raf);
+  vid.onloadeddata=null;vid.oncanplay=null;vid.onerror=null;
+  vid.pause();vid.removeAttribute('src');
+  try{vid.load()}catch(e){}
+  if(st.url){try{URL.revokeObjectURL(st.url)}catch(e){}st.url=null}
+  st.src=null;st.full=null;st.file=null;st.hold=false;
+  $('cmp').classList.remove('on');$('badge').classList.remove('on');
+}
+
+$('fg').onchange=async e=>{
+  const inp=e.target,f=inp.files&&inp.files[0];inp.value='';
+  if(!f)return;
+  const mySeq=++st.seq;
+  const kind=await detectKind(f);
+  if(mySeq!==st.seq)return;
+  if(kind==='video')loadVideo(f,mySeq);
+  else if(kind==='photo')await loadPhoto(f,mySeq);
+  else{
+    try{await loadPhoto(f,mySeq)}
+    catch(err){toast('Please pick a photo or video file.',3200)}
+  }
+};
+
+async function loadPhoto(f,mySeq){
+  const maxTex=(gpuPreview&&gpuPreview.maxTex)||2048;
+  const safeMax=Math.max(1024,Math.min(3264,maxTex));
+  let decoded=null,tmpUrl=null;
+  try{
+    try{tmpUrl=URL.createObjectURL(f);decoded=await loadImgSrc(tmpUrl)}catch(e){decoded=null}
+    if(!decoded){
+      try{decoded=await loadImgSrc(await readDataUrl(f))}catch(e){decoded=null}
+    }
+    if(!decoded&&window.createImageBitmap){
+      try{decoded=await createImageBitmap(f,{imageOrientation:'from-image'})}
+      catch(e){try{decoded=await createImageBitmap(f)}catch(e2){decoded=null}}
+    }
+    if(!decoded)throw new Error('decode failed');
+    if(mySeq!==st.seq)return;
+    const sw=decoded.naturalWidth||decoded.width,sh=decoded.naturalHeight||decoded.height;
+    if(!sw||!sh)throw new Error('empty');
+    const[ew,eh]=fit(sw,sh,safeMax);
+    const[pw,ph]=fit(ew,eh,Math.min(MAXP,safeMax));
+    const exportCv=toCanvas(decoded,ew,eh);
+    const previewCv=(pw===ew&&ph===eh)?exportCv:toCanvas(exportCv,pw,ph);
+    resetMedia();
+    st.src=previewCv;st.full=exportCv;st.dim={w:pw,h:ph};
+    const s=analyzeScene(previewCv);st.mean=s.mean;st.p90=s.p90;
+    show('photo');
+    requestAnimationFrame(()=>{if(mySeq===st.seq)renderPhoto()});
+  }catch(e){
+    if(mySeq===st.seq)toast('Could not open that photo.');
+  }finally{
+    if(tmpUrl)try{URL.revokeObjectURL(tmpUrl)}catch(e){}
+    if(decoded&&decoded.close)try{decoded.close()}catch(e){}
+  }
+}
+
+function loadVideo(f,mySeq){
+  resetMedia();
+  st.file=f;
+  const attach=(srcUrl,canFallback)=>{
+    if(mySeq!==st.seq)return;
+    let handled=false;
+    const onReady=()=>{
+      if(handled||mySeq!==st.seq)return;
+      if(!vid.videoWidth||!vid.videoHeight)return;
+      handled=true;
+      vid.onloadeddata=null;vid.oncanplay=null;vid.onerror=null;
+      const[w,h]=fit(vid.videoWidth,vid.videoHeight,MAXV);
+      st.dim={w,h};cv.width=w;cv.height=h;st.fc=0;
+      const s=analyzeScene(vid);st.mean=s.mean;st.p90=s.p90;
+      show('video');
+      drawVideoFrame(w,h);
+    };
+    vid.onloadeddata=onReady;
+    vid.oncanplay=onReady;
+    vid.onerror=async()=>{
+      if(mySeq!==st.seq)return;
+      if(canFallback&&f.size<=80*1024*1024){
+        try{
+          const dUrl=await readDataUrl(f);
+          if(mySeq===st.seq){attach(dUrl,false);return}
+        }catch(e){}
+      }
+      toast('This video format cannot be opened here.');
+    };
+    vid.src=srcUrl;vid.load();
   };
-  vid.onerror=()=>toast('This video format cannot be opened here.');
-  vid.src=st.url;vid.load();
+  st.url=URL.createObjectURL(f);
+  attach(st.url,true);
 }
 
 $('stage').onclick=e=>{
@@ -698,13 +891,15 @@ $('play').onclick=e=>{
 };
 
 const sl=$('sl');
-sl.oninput=()=>{
+const onSlider=()=>{
   st.amt=+sl.value;$('out').textContent=st.amt+'%';
   sl.style.setProperty('--p',st.amt+'%');
   if(st.kind==='photo')renderPhoto();
   else if(st.kind==='video'&&vid.paused)drawVideoFrame();
 };
-sl.oninput();
+sl.oninput=onSlider;
+sl.onchange=onSlider;
+onSlider();
 
 const cmp=$('cmp');
 function hold(on){
@@ -969,18 +1164,29 @@ async function doExport(){
   try{
     if(st.kind==='photo'){
       $('adfoot').textContent='Saving…';
-      const im=st.full,[w,h]=fit(im.naturalWidth,im.naturalHeight,3264);
-      const c=document.createElement('canvas');c.width=w;c.height=h;
+      const im=st.full;
+      const sw=im.naturalWidth||im.width,sh=im.naturalHeight||im.height;
+      let[w,h]=fit(sw,sh,3264);
+      const c=document.createElement('canvas');
       const gl=createGLRenderer(c);
+      let blob=null;
       if(gl){
+        [w,h]=fit(sw,sh,Math.min(3264,gl.maxTex||2048));
+        c.width=w;c.height=h;
         gl.render(im,w,h,st.amt/100,st.mean,st.p90);
-      }else{
-        const x=c.getContext('2d',{willReadFrequently:true});
+        blob=await new Promise(r=>c.toBlob(r,'image/jpeg',0.95));
+        gl.dispose();
+      }
+      if(!blob||blob.size<512){
+        const c2=document.createElement('canvas');
+        [w,h]=fit(sw,sh,2400);
+        c2.width=w;c2.height=h;
+        const x=c2.getContext('2d',{willReadFrequently:true});
         x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';
         x.drawImage(im,0,0,w,h);
         cpuEnhance(x,w,h,st.amt/100,st.mean,st.p90);
+        blob=await new Promise(r=>c2.toBlob(r,'image/jpeg',0.95));
       }
-      const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',0.95));
       await save('GBook-Camera-'+stamp+'.jpg',blob);
     }else{
       await exportVideo(stamp);
