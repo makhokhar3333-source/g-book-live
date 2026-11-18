@@ -60,98 +60,181 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="gbc-version" content="2026111703">
+<meta name="gbc-version" content="2026111801">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>G-Book Camera</title>
 <style>
-:root{--bg:#07090f;--panel:#10141d;--line:#222a38;--text:#eef3fa;--mute:#8b96a8;--glow:#4fd8ff;--glow2:#1aa7ff;--gold:#e6c27a;
-color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#07090f}}
-:root[data-theme="dark"]{--bg:#07090f}
+:root{
+  --bg:#07090f;--panel:#10141d;--line:#222a38;--text:#eef3fa;--mute:#8b96a8;
+  --glow:#4fd8ff;--glow2:#1aa7ff;--gold:#e6c27a;
+  color-scheme:dark;box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px)
+}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;margin:0}
-body{background:radial-gradient(900px 500px at 50% -10%,#10223a 0,var(--bg) 60%);color:var(--text);font:15px/1.4 -apple-system,"SF Pro Display","Segoe UI",Inter,Roboto,sans-serif;display:flex;justify-content:center;overflow:hidden}
+body{
+  background:radial-gradient(900px 500px at 50% -10%,#10223a 0,var(--bg) 60%);
+  color:var(--text);
+  font:15px/1.4 -apple-system,"SF Pro Display","Segoe UI",Roboto,sans-serif;
+  display:flex;justify-content:center;overflow:hidden
+}
 .app{width:100%;max-width:520px;height:100%;display:flex;flex-direction:column;padding:12px 16px 16px;gap:12px}
-header{display:flex;align-items:center;justify-content:space-between}
-h1{font-size:20px;margin:0;font-weight:650;letter-spacing:.2px}
+header{display:flex;align-items:center;justify-content:space-between;min-height:44px}
+h1{font-size:20px;margin:0;font-weight:650;letter-spacing:.2px;white-space:nowrap}
 h1 span{color:var(--gold)}
-.brand{display:flex;align-items:center;gap:10px}.logo{width:34px;height:34px;filter:drop-shadow(0 0 8px rgba(79,216,255,.5))}
-.btn{border:0;font:inherit;cursor:pointer;color:var(--text);transition:transform .12s,box-shadow .2s}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{width:34px;height:34px;flex-shrink:0;filter:drop-shadow(0 0 8px rgba(79,216,255,.5))}
+.btn{border:0;font:inherit;cursor:pointer;color:var(--text);transition:transform .12s,box-shadow .2s,opacity .2s}
 .btn:active{transform:scale(.96)}
 .btn:focus-visible,input:focus-visible{outline:2px solid var(--glow);outline-offset:3px}
-.export{background:linear-gradient(180deg,#7ae6ff,var(--glow2));color:#03131c;font-weight:650;padding:9px 20px;border-radius:999px;box-shadow:0 0 18px rgba(79,216,255,.55)}
+.export{
+  background:linear-gradient(180deg,#7ae6ff,var(--glow2));
+  color:#03131c;font-weight:700;padding:10px 22px;min-height:44px;
+  border-radius:999px;box-shadow:0 0 18px rgba(79,216,255,.5);white-space:nowrap
+}
 .export:disabled{opacity:.35;box-shadow:none;cursor:not-allowed}
-.stage{flex:1;min-height:0;position:relative;background:#04060a;border:1px solid var(--line);border-radius:22px;overflow:hidden;display:flex;align-items:center;justify-content:center}
-canvas{max-width:100%;max-height:100%;display:none;touch-action:manipulation}
-.empty{position:absolute;inset:0 0 70px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--mute);padding:24px;gap:6px}
-.empty b{color:var(--text);font-size:17px;font-weight:600}
-.pick{position:absolute;left:0;right:0;bottom:0;display:flex;gap:10px;padding:14px;background:linear-gradient(0deg,rgba(4,6,10,.92),rgba(4,6,10,0))}
-.pk{flex:1;display:flex;flex-direction:column;gap:8px}.tip{text-align:center;font-size:12px;color:var(--mute)}
-.pick .btn{flex:1;padding:15px;border-radius:16px;background:linear-gradient(180deg,#7ae6ff,var(--glow2));color:#03131c;font-weight:650;font-size:16px;box-shadow:0 0 22px rgba(79,216,255,.45)}
-.badge{position:absolute;top:12px;left:12px;background:rgba(0,0,0,.65);padding:5px 12px;border-radius:999px;font-size:12px;display:none}
+.stage{
+  flex:1;min-height:0;position:relative;background:#04060a;
+  border:1px solid var(--line);border-radius:22px;overflow:hidden;
+  display:flex;align-items:center;justify-content:center
+}
+canvas{max-width:100%;max-height:100%;display:none;touch-action:manipulation;object-fit:contain}
+.empty{
+  position:absolute;inset:0 0 76px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;color:var(--mute);padding:24px;gap:8px
+}
+.empty b{color:var(--text);font-size:18px;font-weight:650}
+.empty span{font-size:13.5px;max-width:260px;line-height:1.45}
+.pick{
+  position:absolute;left:0;right:0;bottom:0;display:flex;padding:14px;
+  background:linear-gradient(0deg,rgba(4,6,10,.92) 30%,rgba(4,6,10,0))
+}
+.pick .btn{
+  flex:1;min-height:48px;padding:14px 18px;border-radius:16px;
+  background:linear-gradient(180deg,#7ae6ff,var(--glow2));
+  color:#03131c;font-weight:700;font-size:16px;
+  box-shadow:0 0 22px rgba(79,216,255,.42)
+}
+.pick.compact{background:none;justify-content:center;pointer-events:none}
+.pick.compact .btn{
+  flex:0 1 auto;pointer-events:auto;min-height:42px;padding:9px 18px;
+  font-size:13.5px;border-radius:999px;background:rgba(16,20,29,.84);
+  color:var(--text);border:1px solid rgba(79,216,255,.35);
+  box-shadow:0 6px 20px rgba(0,0,0,.5);backdrop-filter:blur(10px)
+}
+.badge{
+  position:absolute;top:12px;left:12px;background:rgba(0,0,0,.72);
+  padding:5px 12px;border-radius:999px;font-size:12px;font-weight:600;
+  display:none;border:1px solid rgba(255,255,255,.12)
+}
 .badge.on{display:block}
-.play{position:absolute;top:12px;right:12px;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;font-size:14px}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:14px 16px 12px}
-.row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
-.row label{font-weight:600}
-.row output{color:var(--glow);font-variant-numeric:tabular-nums;font-weight:650}
-input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:30px;background:transparent;margin:0;--p:0%}
-input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:6px;background:linear-gradient(90deg,var(--glow) var(--p),#262e3d var(--p));box-shadow:0 0 12px rgba(79,216,255,.25)}
+.play{
+  position:absolute;top:12px;right:12px;width:44px;height:44px;
+  border-radius:50%;background:rgba(0,0,0,.62);display:none;
+  align-items:center;justify-content:center;font-size:15px;
+  border:1px solid rgba(255,255,255,.14);cursor:pointer
+}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:14px 16px}
+.row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.row label{font-weight:650;font-size:15px}
+.row output{color:var(--glow);font-variant-numeric:tabular-nums;font-weight:700;font-size:16px}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:34px;background:transparent;margin:0;--p:70%}
+input[type=range]::-webkit-slider-runnable-track{
+  height:6px;border-radius:6px;
+  background:linear-gradient(90deg,var(--glow) var(--p),#262e3d var(--p));
+  box-shadow:0 0 12px rgba(79,216,255,.25)
+}
 input[type=range]::-moz-range-track{height:6px;border-radius:6px;background:#262e3d}
 input[type=range]::-moz-range-progress{height:6px;border-radius:6px;background:var(--glow)}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:#bdf1ff;margin-top:-10px;box-shadow:0 0 16px var(--glow)}
-input[type=range]::-moz-range-thumb{width:26px;height:26px;border:0;border-radius:50%;background:#bdf1ff;box-shadow:0 0 16px var(--glow)}
-.ticks{display:flex;justify-content:space-between;color:var(--mute);font-size:12px}
-.cmp{margin-top:10px;width:100%;padding:12px;border-radius:14px;background:transparent;border:1px solid #34405a;user-select:none;-webkit-user-select:none;touch-action:none;font-weight:550}
-.cmp.on{background:#16233a;border-color:var(--glow);box-shadow:0 0 16px rgba(79,216,255,.3)}
-.ad{position:fixed;inset:0;background:#000;display:none;flex-direction:column;z-index:20;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:28px;height:28px;border-radius:50%;
+  background:#bdf1ff;margin-top:-11px;box-shadow:0 0 16px var(--glow)
+}
+input[type=range]::-moz-range-thumb{width:28px;height:28px;border:0;border-radius:50%;background:#bdf1ff;box-shadow:0 0 16px var(--glow)}
+.ticks{display:flex;justify-content:space-between;color:var(--mute);font-size:12px;font-variant-numeric:tabular-nums}
+.cmp{
+  margin-top:12px;width:100%;min-height:46px;padding:12px;border-radius:14px;
+  background:transparent;border:1px solid #34405a;user-select:none;
+  -webkit-user-select:none;touch-action:none;font-weight:600
+}
+.cmp.on{background:#16233a;border-color:var(--glow);box-shadow:0 0 16px rgba(79,216,255,.32)}
+.ad{
+  position:fixed;inset:0;background:#000;display:none;flex-direction:column;
+  z-index:20;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)
+}
 .ad.on{display:flex}
 .adtop{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;color:#cfd6e2;font-size:13px}
 .ring{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-weight:700;border:2px solid #3b4557;color:#fff;background:#111}
-.adbody{flex:1;margin:0 16px;border-radius:20px;background:linear-gradient(145deg,#2a1f5c,#0e5a7a 55%,#e6c27a);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;gap:10px}
-.adbody h2{margin:0;font-size:26px}
-.slot{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;background:rgba(0,0,0,.55);border:1px dashed #9fe9ff;padding:8px 12px;border-radius:10px;word-break:break-all}
+.adbody{
+  flex:1;margin:0 16px;border-radius:20px;
+  background:linear-gradient(145deg,#2a1f5c,#0e5a7a 55%,#e6c27a);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:24px;gap:10px
+}
+.adbody h2{margin:0;font-size:25px}
 .bar{height:4px;background:#222;margin:14px 16px 0;border-radius:4px;overflow:hidden}
-.bar i{display:block;height:100%;width:0;background:var(--glow);transition:width .25s}
-.bar i.ind{width:40%!important;animation:ind 1.1s linear infinite}@keyframes ind{0%{margin-left:-40%}100%{margin-left:100%}}
-.pct{font-size:44px;font-weight:800;min-height:52px}
+.bar i{display:block;height:100%;width:0;background:var(--glow);transition:width .2s}
+.bar i.ind{width:40%!important;animation:ind 1.1s linear infinite}
+@keyframes ind{0%{margin-left:-40%}100%{margin-left:100%}}
+.pct{font-size:44px;font-weight:800;min-height:52px;font-variant-numeric:tabular-nums}
 .adfoot{padding:14px 16px;text-align:center;color:#cfd6e2;min-height:64px}
-.adfoot .btn{background:var(--glow);color:#03131c;font-weight:650;padding:11px 24px;border-radius:999px;margin-top:6px}
-.welcome{position:fixed;inset:0;z-index:25;display:flex;flex-direction:column;align-items:center;overflow:hidden;
-background:radial-gradient(520px 420px at 82% 8%,rgba(150,90,255,.38),transparent 70%),radial-gradient(560px 460px at 10% 92%,rgba(40,200,255,.32),transparent 70%),radial-gradient(700px 500px at 50% 50%,#0f2a5e 0,#08142e 55%,#040813 100%);
-transition:opacity .55s ease,transform .55s ease}
+.welcome{
+  position:fixed;inset:0;z-index:25;display:flex;flex-direction:column;align-items:center;overflow:hidden;
+  background:radial-gradient(520px 420px at 82% 8%,rgba(150,90,255,.38),transparent 70%),
+             radial-gradient(560px 460px at 10% 92%,rgba(40,200,255,.32),transparent 70%),
+             radial-gradient(700px 500px at 50% 50%,#0f2a5e 0,#08142e 55%,#040813 100%);
+  transition:opacity .45s ease,transform .45s ease
+}
 .welcome.out{opacity:0;transform:scale(1.06);pointer-events:none}
-.wtop{position:absolute;top:calc(env(safe-area-inset-top,0px) + 8vh);left:0;right:0;text-align:center;padding:0 20px}
+.wtop{position:absolute;top:calc(env(safe-area-inset-top,0px) + 8vh);left:0;right:0;text-align:center;padding:0 20px;pointer-events:none}
 .welcome .logo{width:96px;height:96px;filter:drop-shadow(0 0 22px rgba(79,216,255,.7))}
 .w1{margin-top:18px;font-size:18px;color:#a9bcdc;letter-spacing:.5px}
-.w2{margin-top:4px;font-size:clamp(30px,8.5vw,40px);font-weight:800;line-height:1.15;background:linear-gradient(90deg,#fff,#9ff0ff 55%,#e6c27a);-webkit-background-clip:text;background-clip:text;color:transparent}
-.wtop{pointer-events:none}
+.w2{
+  margin-top:4px;font-size:clamp(30px,8.5vw,40px);font-weight:800;line-height:1.15;
+  background:linear-gradient(90deg,#fff,#9ff0ff 55%,#e6c27a);
+  -webkit-background-clip:text;background-clip:text;color:transparent
+}
 .wmid{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
-.wbtn{position:relative;pointer-events:auto;touch-action:manipulation;-webkit-user-select:none;user-select:none;min-width:220px;padding:18px 40px;border-radius:999px;font-size:20px;font-weight:700;color:#03131c;background:linear-gradient(180deg,#8cebff,#1aa7ff);box-shadow:0 0 34px rgba(79,216,255,.7),0 0 80px rgba(79,216,255,.25);animation:pulse 2.6s ease-in-out infinite}
+.wbtn{
+  position:relative;pointer-events:auto;touch-action:manipulation;-webkit-user-select:none;user-select:none;
+  min-width:220px;padding:18px 40px;border-radius:999px;font-size:20px;font-weight:700;
+  color:#03131c;background:linear-gradient(180deg,#8cebff,#1aa7ff);
+  box-shadow:0 0 34px rgba(79,216,255,.7),0 0 80px rgba(79,216,255,.25);
+  animation:pulse 2.6s ease-in-out infinite
+}
 .wbtn:active{transform:scale(.96)}
 @keyframes pulse{50%{box-shadow:0 0 46px rgba(79,216,255,.95),0 0 100px rgba(79,216,255,.35)}}
-.net{position:fixed;top:0;left:0;right:0;z-index:40;background:#3a3b3c;color:#fff;font-size:13px;font-weight:500;text-align:center;padding:calc(env(safe-area-inset-top,0px) + 6px) 12px 6px;transform:translateY(-110%);transition:transform .3s ease;pointer-events:none}
+.net{
+  position:fixed;top:0;left:0;right:0;z-index:40;background:#3a3b3c;color:#fff;
+  font-size:13px;font-weight:500;text-align:center;
+  padding:calc(env(safe-area-inset-top,0px) + 6px) 12px 6px;
+  transform:translateY(-110%);transition:transform .3s ease;pointer-events:none
+}
 .net.on{transform:translateY(0)}
-.net.pulse{animation:netpulse .45s 3}@keyframes netpulse{50%{background:#d93025}}
-.wbtn.locked{opacity:.55;filter:saturate(.4);animation:none;box-shadow:none}.net.ok{background:#2e7d32}
-.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#1b2434;border:1px solid #34405a;padding:10px 18px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:30;max-width:90%;text-align:center}
+.net.ok{background:#2e7d32}
+.toast{
+  position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));
+  transform:translateX(-50%);background:#1b2434;border:1px solid #34405a;
+  padding:10px 18px;border-radius:999px;font-size:14px;opacity:0;
+  pointer-events:none;transition:opacity .25s;z-index:30;max-width:90%;text-align:center
+}
 .toast.on{opacity:1}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
-
-/* G-Book natural camera controls */
-.controls{max-height:30vh;overflow:auto;overscroll-behavior:contain}
-.controls .ctrl{padding:7px 0;border-bottom:1px solid var(--line)}
-.controls .ctrl:last-child{border-bottom:0}
-.controls select{width:100%;background:#171f2d;color:var(--text);border:1px solid #34405a;border-radius:12px;padding:11px;font:inherit}
-.controls .tog{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:7px 0}
-.controls input[type=checkbox]{width:20px;height:20px;accent-color:#4fd8ff}
-.controls .small{font-size:11px;color:var(--mute)}
-.exposure{font-size:12px;color:#b7d8e7;padding:6px 0}
-.gate{position:fixed;inset:0;z-index:100;background:rgba(3,7,15,.96);display:flex;align-items:center;justify-content:center;padding:24px}
-.gatecard{width:min(100%,360px);background:#111a29;border:1px solid #34435b;border-radius:26px;padding:26px;text-align:center;box-shadow:0 20px 70px #0009}
-.gateicon{font-size:38px;margin-bottom:12px}.gatecard h2{font-size:21px;line-height:1.35;margin:0 0 10px}
-.gatecard button{width:100%;border:0;border-radius:15px;padding:14px;background:linear-gradient(180deg,#8cebff,#1aa7ff);color:#03131c;font:700 16px inherit;margin-top:12px}
-
+.gate{
+  position:fixed;inset:0;z-index:100;background:rgba(3,7,15,.96);
+  display:flex;align-items:center;justify-content:center;padding:24px
+}
+.gatecard{
+  width:min(100%,360px);background:#111a29;border:1px solid #34435b;
+  border-radius:26px;padding:26px;text-align:center;box-shadow:0 20px 70px #0009
+}
+.gatecard h2{font-size:21px;line-height:1.35;margin:0 0 10px}
+.gatecard button{
+  width:100%;min-height:48px;border:0;border-radius:15px;padding:14px;
+  background:linear-gradient(180deg,#8cebff,#1aa7ff);
+  color:#03131c;font:700 16px inherit;margin-top:12px;cursor:pointer
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
@@ -164,67 +247,48 @@ transition:opacity .55s ease,transform .55s ease}
 </div>
 
 <div class="app">
-  <header><div class="brand"><svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="lg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9ff0ff"/><stop offset="1" stop-color="#2b6bff"/></linearGradient><radialGradient id="lg2" cx=".38" cy=".32" r=".8"><stop offset="0" stop-color="#5ad7ff"/><stop offset=".45" stop-color="#0a2a5c"/><stop offset="1" stop-color="#02050f"/></radialGradient></defs><rect width="64" height="64" rx="15" fill="#090d18"/><circle cx="32" cy="32" r="23" fill="none" stroke="url(#lg1)" stroke-width="4"/><circle cx="32" cy="32" r="17" fill="url(#lg2)"/><circle cx="32" cy="32" r="8" fill="#020611" stroke="#7fe3ff" stroke-width="1.2"/><ellipse cx="25.5" cy="23.5" rx="6" ry="3.4" fill="#fff" opacity=".85" transform="rotate(-35 25.5 23.5)"/><circle cx="38" cy="38.5" r="2" fill="#e6c27a"/></svg><h1>G-Book <span>Camera</span></h1></div><button class="btn export" id="exp" disabled>Export</button></header>
+  <header>
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
+        <defs>
+          <linearGradient id="lg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9ff0ff"/><stop offset="1" stop-color="#2b6bff"/></linearGradient>
+          <radialGradient id="lg2" cx=".38" cy=".32" r=".8"><stop offset="0" stop-color="#5ad7ff"/><stop offset=".45" stop-color="#0a2a5c"/><stop offset="1" stop-color="#02050f"/></radialGradient>
+        </defs>
+        <rect width="64" height="64" rx="15" fill="#090d18"/>
+        <circle cx="32" cy="32" r="23" fill="none" stroke="url(#lg1)" stroke-width="4"/>
+        <circle cx="32" cy="32" r="17" fill="url(#lg2)"/>
+        <circle cx="32" cy="32" r="8" fill="#020611" stroke="#7fe3ff" stroke-width="1.2"/>
+        <ellipse cx="25.5" cy="23.5" rx="6" ry="3.4" fill="#fff" opacity=".85" transform="rotate(-35 25.5 23.5)"/>
+        <circle cx="38" cy="38.5" r="2" fill="#e6c27a"/>
+      </svg>
+      <h1>G-Book <span>Camera</span></h1>
+    </div>
+    <button class="btn export" id="exp" disabled>Export</button>
+  </header>
 
   <div class="stage" id="stage">
     <canvas id="cv"></canvas>
-    <div class="empty" id="empty"><b>Pick a photo or video</b><span>Dark night or bright day, one slider does the rest.</span></div>
+    <div class="empty" id="empty">
+      <b>Pick a photo or video</b>
+      <span>Auto night light, highlight protection, warm studio skin glow &amp; crisp detail in one slider.</span>
+    </div>
     <div class="badge" id="badge">Original</div>
-    <div class="play" id="play">❚❚</div>
-    <div class="pick">
-      <button class="btn" id="bg">Upload from Gallery</button>
+    <div class="play" id="play" role="button" aria-label="Play or pause">❚❚</div>
+    <div class="pick" id="pickWrap">
+      <button class="btn" id="bg" type="button">Upload from Gallery</button>
     </div>
   </div>
 
-
-  <div class="panel controls" id="proControls" aria-label="Camera controls">
-    <div class="row"><label>iPhone-style Camera Studio</label><output id="exposureRead">Auto HDR</output></div>
-    <div class="ctrl">
-      <div class="row"><label for="aperture">Smart Aperture Simulation</label><output id="apertureOut">Auto</output></div>
-      <input type="range" id="aperture" min="1.48" max="4" step=".01" value="2.4">
-      <div class="ticks"><span>f/1.48 · Low light</span><span>f/4.0 · Bright</span></div>
-      <div class="small">A software exposure/depth effect; it does not change the phone lens aperture.</div>
-    </div>
-    <div class="ctrl tog"><label for="autoAperture">Automatic scene light adjustment</label><input id="autoAperture" type="checkbox" checked></div>
-    <div class="ctrl tog"><label for="bokeh">Cinematic Background Blur (Bokeh)</label><input id="bokeh" type="checkbox"></div>
-    <div class="ctrl">
-      <div class="row"><label for="depth">Depth / Blur Strength</label><output id="depthOut">f/4.0</output></div>
-      <input type="range" id="depth" min="1.4" max="16" step=".1" value="4">
-    </div>
-    <div class="ctrl">
-      <div class="row"><label for="style">Photographic Style</label><output id="styleOut">Natural HDR</output></div>
-      <select id="style">
-        <option value="natural">iPhone 18 Pro Natural HDR</option>
-        <option value="rich">Rich Contrast</option>
-        <option value="portrait">Luminous Portrait Glow</option>
-        <option value="log">Apple Log 2 / ProRes Film look</option>
-      </select>
-    </div>
-    <div class="ctrl">
-      <div class="row"><label for="warmth">Warmth / White Balance</label><output id="warmthOut">0</output></div>
-      <input type="range" id="warmth" min="-25" max="25" value="0">
-    </div>
-    <div class="ctrl">
-      <div class="row"><label for="sharpness">Detail Sharpness</label><output id="sharpnessOut">15%</output></div>
-      <input type="range" id="sharpness" min="0" max="50" value="15">
-    </div>
-    <div class="ctrl">
-      <div class="row"><label for="frame">Framing</label></div>
-      <select id="frame"><option value="original">Original aspect ratio</option><option value="16:9">16:9 Cinema</option><option value="9:16">9:16 Reels / TikTok</option><option value="1:1">1:1 Square Center Stage</option></select>
-    </div>
-    <div class="exposure" id="exposureMeter">Exposure: waiting for media · Tap preview to set focus point</div>
-    <div class="small">Tap the preview to set a focus point. Subject recognition and true depth masking require native AI/depth support.</div>
-  </div>
   <div class="panel">
-    <div class="row"><label for="sl">Style Intensity</label><output id="out">65%</output></div>
-    <input type="range" id="sl" min="0" max="100" value="65" step="1">
+    <div class="row"><label for="sl">Studio Enhancement</label><output id="out">70%</output></div>
+    <input type="range" id="sl" min="0" max="100" value="70" step="1">
     <div class="ticks"><span>0%</span><span>50%</span><span>100%</span></div>
-    <button class="btn cmp" id="cmp">Hold to Compare (Before / After)</button>
+    <button class="btn cmp" id="cmp" type="button">Hold to Compare (Before / After)</button>
   </div>
 </div>
 
 <input type="file" id="fg" accept="image/*,video/*" hidden>
-<video id="vid" playsinline loop style="display:none"></video>
+<video id="vid" playsinline loop preload="auto" style="display:none"></video>
 
 <div class="ad" id="ad">
   <div class="adtop"><span>G-Book Camera</span><div class="ring" id="ring">…</div></div>
@@ -236,8 +300,17 @@ transition:opacity .55s ease,transform .55s ease}
   <div class="bar"><i id="bar"></i></div>
   <div class="adfoot" id="adfoot">Loading ad…</div>
 </div>
-<div class="ad" id="off" style="background:rgba(0,0,0,.7);align-items:center;justify-content:center"><div class="panel" style="max-width:300px;text-align:center;padding:22px"><b style="font-size:18px">Connect to Internet to Export</b><p style="color:var(--mute);margin:8px 0 16px">Turn on Wi-Fi or mobile data, then tap Export again.</p><button class="btn export" id="offok">OK</button></div></div>
-<div class="welcome" id="welcome"><div class="wtop"><div id="wl"></div><div class="w1">Welcome from</div><div class="w2">Malik Ghous Khokhar</div></div><div class="wmid"><button class="btn wbtn" id="wgo" type="button" onclick="window.gbGo&&window.gbGo()">Editing</button></div></div>
+
+<div class="welcome" id="welcome">
+  <div class="wtop">
+    <div id="wl"></div>
+    <div class="w1">Welcome from</div>
+    <div class="w2">Malik Ghous Khokhar</div>
+  </div>
+  <div class="wmid">
+    <button class="btn wbtn" id="wgo" type="button" onclick="window.gbGo&&window.gbGo()">Editing</button>
+  </div>
+</div>
 <script>
 (function(){
  var w=document.getElementById('welcome'),b=document.getElementById('wgo'),l=document.getElementById('wl'),done=false;
@@ -245,480 +318,960 @@ transition:opacity .55s ease,transform .55s ease}
  function go(e){
   if(e&&e.cancelable&&e.preventDefault)e.preventDefault();
   if(done)return;
-  if(!navigator.onLine){lock();var n=document.getElementById('net');if(n){n.textContent='Connect to Internet';n.className='net on';void n.offsetWidth;n.className='net on pulse'}return}
   done=true;
   try{w.classList.add('out')}catch(x){}
   setTimeout(function(){try{w.style.display='none';if(w.parentNode)w.parentNode.removeChild(w)}catch(x){}},450);
  }
  window.gbGo=go;
- function lock(){b.classList.toggle('locked',!navigator.onLine);b.setAttribute('aria-disabled',String(!navigator.onLine))}
- addEventListener('online',lock);addEventListener('offline',lock);lock();
  ['click','touchend','pointerup'].forEach(function(n){b.addEventListener(n,go,false)});
 })();
 <\/script>
+
 <div class="net" id="net" role="status"></div>
 <div class="toast" id="toast"></div>
 
 <script>
 const $=id=>document.getElementById(id);
-
-const cv=$('cv'),cx=cv.getContext('2d',{willReadFrequently:true}),vid=$('vid');
-function hq(){cx.imageSmoothingEnabled=true;cx.imageSmoothingQuality='high'}
-const st={kind:null,amt:65,mean:.4,hold:false,src:null,raf:0,lid:0,fc:0,busy:false,url:null,vtrack:null,ac:null,focusX:.5,focusY:.5};
-const MAXP=1100,MAXV=720;
+const cv=$('cv'),vid=$('vid');
+const st={
+  kind:null,amt:70,mean:0.42,p90:0.75,hold:false,
+  src:null,full:null,dim:{w:0,h:0},raf:0,lid:0,fc:0,
+  busy:false,exporting:false,wasPlaying:false,
+  url:null,imgUrl:null,file:null,vtrack:null,ac:null,asrc:null,mon:null,adst:null
+};
+const MAXP=1280,MAXV=960;
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
-function makeIcon(n){const c=document.createElement('canvas');c.width=c.height=n;const x=c.getContext('2d'),u=n/64;
- x.fillStyle='#090d18';x.fillRect(0,0,n,n);
- let g=x.createLinearGradient(0,0,n,n);g.addColorStop(0,'#9ff0ff');g.addColorStop(1,'#2b6bff');
- x.lineWidth=4*u;x.strokeStyle=g;x.beginPath();x.arc(32*u,32*u,23*u,0,7);x.stroke();
- g=x.createRadialGradient(24*u,22*u,1,32*u,32*u,18*u);g.addColorStop(0,'#5ad7ff');g.addColorStop(.45,'#0a2a5c');g.addColorStop(1,'#02050f');
- x.fillStyle=g;x.beginPath();x.arc(32*u,32*u,17*u,0,7);x.fill();
- x.fillStyle='#020611';x.strokeStyle='#7fe3ff';x.lineWidth=1.2*u;x.beginPath();x.arc(32*u,32*u,8*u,0,7);x.fill();x.stroke();
- x.fillStyle='rgba(255,255,255,.85)';x.beginPath();x.ellipse(25.5*u,23.5*u,6*u,3.4*u,-.61,0,7);x.fill();
- x.fillStyle='#e6c27a';x.beginPath();x.arc(38*u,38.5*u,2*u,0,7);x.fill();return c.toDataURL('image/png')}
-try{const i180=makeIcon(180),i512=makeIcon(512);
- [['apple-touch-icon',i180],['icon',i180]].forEach(([r,h])=>{const l=document.createElement('link');l.rel=r;l.href=h;document.head.append(l)});
- const mf={name:'G-Book Camera',short_name:'G-Book',display:'standalone',background_color:'#07090f',theme_color:'#07090f',icons:[{src:i180,sizes:'180x180',type:'image/png'},{src:i512,sizes:'512x512',type:'image/png'}]};
- const ml=document.createElement('link');ml.rel='manifest';ml.href=URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/manifest+json'}));document.head.append(ml);
- const m1=document.createElement('meta');m1.name='apple-mobile-web-app-title';m1.content='G-Book Camera';document.head.append(m1)}catch(e){}
-const _pc={};
-function plug(n){if(_pc[n])return _pc[n];try{const C=window.Capacitor;if(!C)return null;let p=C.Plugins&&C.Plugins[n];if(!p&&C.registerPlugin)p=C.registerPlugin(n);if(p)_pc[n]=p;return p||null}catch(e){return null}}
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 
-function toast(m,ms=2600){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),ms)}
+/* App icon + PWA manifest */
+function makeIcon(n){
+  const c=document.createElement('canvas');c.width=c.height=n;
+  const x=c.getContext('2d'),u=n/64;
+  x.fillStyle='#090d18';x.fillRect(0,0,n,n);
+  let g=x.createLinearGradient(0,0,n,n);g.addColorStop(0,'#9ff0ff');g.addColorStop(1,'#2b6bff');
+  x.lineWidth=4*u;x.strokeStyle=g;x.beginPath();x.arc(32*u,32*u,23*u,0,7);x.stroke();
+  g=x.createRadialGradient(24*u,22*u,1,32*u,32*u,18*u);
+  g.addColorStop(0,'#5ad7ff');g.addColorStop(.45,'#0a2a5c');g.addColorStop(1,'#02050f');
+  x.fillStyle=g;x.beginPath();x.arc(32*u,32*u,17*u,0,7);x.fill();
+  x.fillStyle='#020611';x.strokeStyle='#7fe3ff';x.lineWidth=1.2*u;
+  x.beginPath();x.arc(32*u,32*u,8*u,0,7);x.fill();x.stroke();
+  x.fillStyle='rgba(255,255,255,.85)';x.beginPath();x.ellipse(25.5*u,23.5*u,6*u,3.4*u,-.61,0,7);x.fill();
+  x.fillStyle='#e6c27a';x.beginPath();x.arc(38*u,38.5*u,2*u,0,7);x.fill();
+  return c.toDataURL('image/png');
+}
+try{
+  const i180=makeIcon(180),i512=makeIcon(512);
+  [['apple-touch-icon',i180],['icon',i180]].forEach(([r,h])=>{
+    const l=document.createElement('link');l.rel=r;l.href=h;document.head.append(l);
+  });
+  const mf={name:'G-Book Camera',short_name:'G-Book',display:'standalone',background_color:'#07090f',theme_color:'#07090f',icons:[{src:i180,sizes:'180x180',type:'image/png'},{src:i512,sizes:'512x512',type:'image/png'}]};
+  const ml=document.createElement('link');ml.rel='manifest';
+  ml.href=URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/manifest+json'}));
+  document.head.append(ml);
+}catch(e){}
 
-function meanLuma(el,w,h){const c=document.createElement('canvas');c.width=48;c.height=Math.max(1,Math.round(48*h/w));const x=c.getContext('2d');x.drawImage(el,0,0,c.width,c.height);const d=x.getImageData(0,0,c.width,c.height).data;let s=0;for(let i=0;i<d.length;i+=4)s+=(.2126*d[i]+.7152*d[i+1]+.0722*d[i+2])/255;return s/(d.length/4)}
+const _pc={};
+function plug(n){
+  if(_pc[n])return _pc[n];
+  try{
+    const C=window.Capacitor;
+    if(!C)return null;
+    let p=C.Plugins&&C.Plugins[n];
+    if(!p&&C.registerPlugin)p=C.registerPlugin(n);
+    if(p)_pc[n]=p;
+    return p||null;
+  }catch(e){return null}
+}
 
-let lut=new Uint8ClampedArray(256),gainL=new Float32Array(256),clL=new Float32Array(256),shL=new Uint8ClampedArray(512),lutKey='';
-for(let i=0;i<512;i++)shL[i]=i<=232?i:232+23*(1-Math.exp(-(i-232)/23));
-function buildLut(t,mean){const k=t.toFixed(3)+mean.toFixed(2);if(k===lutKey)return;lutKey=k;
- /* exposure guard: move the scene only part-way toward a natural mid-level; bright scenes get gently pulled down, never up */
- const m=clamp(mean,.04,.9),tm=m+(.46-m)*.55*t,g=clamp(Math.log(tm)/Math.log(m),.62,1.05),bp=.03*t,K=.76;
- for(let i=0;i<256;i++){
-  let v=Math.pow(i/255,g);v=clamp((v-bp)/(1-bp),0,1);
-  const s=v*v*(3-2*v);v+=(s-v)*.35*t;
-  if(v>K){const u=(v-K)/(1-K);v=K+(1-K)*(1-Math.exp(-.4*u))/.4}   /* soft highlight roll-off */
-  lut[i]=v*255+.5;
-  gainL[i]=clamp(Math.pow(.46/Math.max(i/255,.07),.2*t),.92,1.55);
-  clL[i]=1-Math.abs(i/127.5-1)}}
+function toast(m,ms=2600){
+  const t=$('toast');t.textContent=m;t.classList.add('on');
+  clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),ms);
+}
 
-let Lp=null,smc=null,smx=null,bs=null,cxi=null,cxf=null,cxk='';
-function enhance(c2,w,h,t,sharp){
-  const id=c2.getImageData(0,0,w,h),d=id.data;
-  const style=$('style')?$('style').value:'natural';
-  const warmth=$('warmth')?Number($('warmth').value):0;
-  const detail=$('sharpness')?Number($('sharpness').value)/100:.15;
-  const auto=$('autoAperture')?$('autoAperture').checked:true;
-  const aperture=$('aperture')?Number($('aperture').value):2.4;
-  const scene=clamp(st.mean||.42,.025,.97);
-  const effective=auto?clamp(1.48+(scene-.18)*((4-1.48)/.62),1.48,4):aperture;
-  if($('apertureOut'))$('apertureOut').textContent='f/'+effective.toFixed(2)+(auto?' · Auto':' · Manual');
-  if($('exposureRead'))$('exposureRead').textContent=scene<.22?'Low light':scene>.68?'Bright scene':'Balanced';
-  if($('exposureMeter'))$('exposureMeter').textContent='Exposure: '+(scene<.22?'Low light · shadow lift':scene>.68?'Bright · highlight protection':'Balanced')+' · Tap preview to set focus point';
-  const amount=clamp(t,0,1);
-  /* restrained tone curve: lift only deep shadows; roll off highlights instead of globally raising exposure */
-  const lift=scene<.28?Math.min(.12,(.28-scene)*.42)*amount:0;
-  const protect=scene>.58?Math.min(.22,(scene-.58)*.48)*amount:0;
+/* Scene light analysis (Auto f/1.48 night boost + f/4.0 highlight protection) */
+const lumaCanvas=document.createElement('canvas');
+lumaCanvas.width=32;lumaCanvas.height=32;
+const lumaCtx=lumaCanvas.getContext('2d',{willReadFrequently:true});
+function analyzeScene(el){
+  try{
+    lumaCtx.drawImage(el,0,0,32,32);
+    const d=lumaCtx.getImageData(0,0,32,32).data;
+    const vals=new Float32Array(1024);
+    let sum=0;
+    for(let i=0,j=0;i<d.length;i+=4,j++){
+      const y=(0.2126*d[i]+0.7152*d[i+1]+0.0722*d[i+2])/255;
+      vals[j]=y;sum+=y;
+    }
+    vals.sort();
+    return{mean:sum/1024,p90:vals[920]};
+  }catch(e){return{mean:0.42,p90:0.75}}
+}
+
+/* ============================================================================
+   GPU Studio Engine (WebGL Fragment Shader + Fast Canvas2D Fallback)
+   Combines all iPhone 17/18 Pro Max features into ONE 0%-100% control:
+   - Auto f/1.48 low-light shadow lift & f/4.0 bright sky highlight protection
+   - Natural HDR tone mapping & rich contrast
+   - Warm studio key-light skin glow with texture-safe edge sharpening
+   - Subtle optical center depth pop & 48MP-style detail clarity
+   ============================================================================ */
+const VS_SRC=`
+attribute vec2 aPos;
+varying vec2 vUv;
+void main(){
+  vUv=vec2(aPos.x*0.5+0.5, 0.5-aPos.y*0.5);
+  gl_Position=vec4(aPos,0.0,1.0);
+}`;
+
+const FS_SRC=`
+precision highp float;
+uniform sampler2D uTex;
+uniform vec2 uTexel;
+uniform float uAmt;
+uniform float uMean;
+uniform float uP90;
+varying vec2 vUv;
+
+float luma(vec3 c){return dot(c,vec3(0.2126,0.7152,0.0722));}
+
+void main(){
+  vec3 orig=texture2D(uTex,vUv).rgb;
+  if(uAmt<=0.001){gl_FragColor=vec4(orig,1.0);return;}
+
+  vec3 n=texture2D(uTex,clamp(vUv+vec2(0.0,-uTexel.y),0.0,1.0)).rgb;
+  vec3 s=texture2D(uTex,clamp(vUv+vec2(0.0, uTexel.y),0.0,1.0)).rgb;
+  vec3 e=texture2D(uTex,clamp(vUv+vec2( uTexel.x,0.0),0.0,1.0)).rgb;
+  vec3 w=texture2D(uTex,clamp(vUv+vec2(-uTexel.x,0.0),0.0,1.0)).rgb;
+  vec3 avg4=0.25*(n+s+e+w);
+
+  float l=luma(orig);
+  float lAvg=luma(avg4);
+  float detail=l-lAvg;
+
+  /* 1. Smart Auto-Aperture: f/1.48 low-light shadow lift + f/4.0 highlight protection */
+  float lowLight=clamp((0.36-uMean)/0.28,0.0,1.0);
+  float brightScene=clamp((uP90-0.72)/0.24,0.0,1.0);
+
+  float shadowWeight=pow(clamp(1.0-l,0.0,1.0),2.15)*smoothstep(0.006,0.075,l+0.018);
+  float hiWeight=smoothstep(0.56,0.97,l);
+  float lift=(0.14+0.42*lowLight)*uAmt;
+  float protect=(0.10+0.22*brightScene)*uAmt;
+
+  vec3 c=orig*(1.0+lift*shadowWeight-protect*hiWeight);
+
+  /* Soft highlight shoulder compression so bright skies & speculars never blow out */
+  float l1=luma(c);
+  if(l1>0.74){
+    float over=(l1-0.74)/0.26;
+    float compressed=0.74+0.26*(1.0-exp(-1.35*over))/0.7408;
+    c*=compressed/max(l1,0.0001);
+  }
+
+  /* 2. Skin-tone studio glow + micro-smoothing with crisp feature preservation */
+  float maxC=max(c.r,max(c.g,c.b));
+  float minC=min(c.r,min(c.g,c.b));
+  float satC=maxC-minC;
+  float isSkin=smoothstep(0.035,0.16,c.r-c.b)
+              *smoothstep(0.008,0.09,c.r-c.g)
+              *smoothstep(0.16,0.42,l)
+              *(1.0-smoothstep(0.84,0.97,l))
+              *smoothstep(0.04,0.22,satC);
+
+  /* Smooth subtle sensor noise in skin midtones while keeping eyes/hair edges razor-sharp */
+  float microDetail=1.0-smoothstep(0.018,0.055,abs(detail));
+  c=mix(c,avg4*(1.0+lift*shadowWeight-protect*hiWeight),0.20*uAmt*isSkin*microDetail);
+
+  /* 3. 48MP-style crisp edge-aware detail clarity */
+  float edgeGate=smoothstep(0.007,0.032,abs(detail));
+  float sharpStr=mix(0.65,0.34,isSkin*microDetail);
+  float sharpDelta=clamp(detail*sharpStr*edgeGate*uAmt,-0.10,0.10);
+  c=clamp(c+sharpDelta*(c/max(luma(c),0.08)*0.35+0.65),0.0,1.0);
+
+  /* 4. Warm studio key-light glow on skin & natural golden-hour balance */
+  float skinMid=isSkin*smoothstep(0.14,0.42,l)*(1.0-smoothstep(0.70,0.93,l));
+  c+=vec3(0.052,0.034,0.011)*skinMid*uAmt;
+  c+=vec3(0.015,0.005,-0.013)*uAmt*(1.0-hiWeight*0.75);
+
+  /* 5. Natural HDR rich contrast + smart vibrance */
+  vec3 sCurve=c*c*(3.0-2.0*c);
+  c=mix(c,sCurve,0.24*uAmt);
+  c-=vec3(0.012*uAmt*(1.0-l));
+
+  float curSat=max(c.r,max(c.g,c.b))-min(c.r,min(c.g,c.b));
+  float vib=0.20*(1.0-curSat)*(1.0-0.55*isSkin)*uAmt;
+  float lFinal=luma(c);
+  c=mix(vec3(lFinal),c,1.0+vib);
+
+  /* 6. Subtle flagship prime-lens depth pop (gentle edge falloff) */
+  float dist=length((vUv-0.5)*vec2(1.0,0.86));
+  float vig=1.0-0.13*uAmt*smoothstep(0.32,0.96,dist);
+  c=clamp(c*vig,0.0,1.0);
+
+  gl_FragColor=vec4(c,1.0);
+}`;
+
+function createGLRenderer(canvas){
+  const opts={alpha:false,antialias:false,depth:false,stencil:false,preserveDrawingBuffer:true,powerPreference:'high-performance'};
+  const gl=canvas.getContext('webgl2',opts)||canvas.getContext('webgl',opts)||canvas.getContext('experimental-webgl',opts);
+  if(!gl)return null;
+  function compile(type,src){
+    const sh=gl.createShader(type);gl.shaderSource(sh,src);gl.compileShader(sh);
+    if(!gl.getShaderParameter(sh,gl.COMPILE_STATUS))return null;
+    return sh;
+  }
+  const vs=compile(gl.VERTEX_SHADER,VS_SRC),fs=compile(gl.FRAGMENT_SHADER,FS_SRC);
+  if(!vs||!fs)return null;
+  const prog=gl.createProgram();gl.attachShader(prog,vs);gl.attachShader(prog,fs);gl.linkProgram(prog);
+  if(!gl.getProgramParameter(prog,gl.LINK_STATUS))return null;
+  gl.useProgram(prog);
+
+  const buf=gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1, 1,-1, -1,1, 1,1]),gl.STATIC_DRAW);
+  const aPos=gl.getAttribLocation(prog,'aPos');
+  gl.enableVertexAttribArray(aPos);
+  gl.vertexAttribPointer(aPos,2,gl.FLOAT,false,0,0);
+
+  const tex=gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D,tex);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+
+  const loc={
+    uTex:gl.getUniformLocation(prog,'uTex'),
+    uTexel:gl.getUniformLocation(prog,'uTexel'),
+    uAmt:gl.getUniformLocation(prog,'uAmt'),
+    uMean:gl.getUniformLocation(prog,'uMean'),
+    uP90:gl.getUniformLocation(prog,'uP90')
+  };
+  gl.uniform1i(loc.uTex,0);
+
+  return{
+    render(source,w,h,amt,mean,p90){
+      if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
+      gl.viewport(0,0,w,h);
+      gl.bindTexture(gl.TEXTURE_2D,tex);
+      gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,source);
+      gl.uniform2f(loc.uTexel,1/w,1/h);
+      gl.uniform1f(loc.uAmt,amt);
+      gl.uniform1f(loc.uMean,mean);
+      gl.uniform1f(loc.uP90,p90);
+      gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+    }
+  };
+}
+
+let gpuPreview=createGLRenderer(cv);
+let cpuPreviewCtx=gpuPreview?null:cv.getContext('2d',{willReadFrequently:true});
+
+function cpuEnhance(ctx,w,h,amt,mean,p90){
+  if(amt<=0.001)return;
+  const id=ctx.getImageData(0,0,w,h),d=id.data;
+  const lowLight=clamp((0.36-mean)/0.28,0,1);
+  const brightScene=clamp((p90-0.72)/0.24,0,1);
+  const lift=(0.14+0.42*lowLight)*amt;
+  const protect=(0.10+0.22*brightScene)*amt;
   for(let i=0;i<d.length;i+=4){
     let r=d[i]/255,g=d[i+1]/255,b=d[i+2]/255;
-    const l=.2126*r+.7152*g+.0722*b;
-    const shadow=(1-l)*(1-l);
-    const hi=l*l;
-    let exp=l<.42?lift*shadow:-protect*hi;
-    r=clamp(r+exp,0,1);g=clamp(g+exp,0,1);b=clamp(b+exp,0,1);
-    /* gentle local contrast without the former aggressive gamma/gain */
-    const mid=clamp((l-.5)*.10*amount,-.045,.045);
-    r=clamp(r+mid,0,1);g=clamp(g+mid,0,1);b=clamp(b+mid,0,1);
-    const sat=style==='rich'?1+.22*amount:style==='log'?1-.12*amount:style==='portrait'?1+.035*amount:1+.07*amount;
-    const lum=.2126*r+.7152*g+.0722*b;
-    r=clamp(lum+(r-lum)*sat+warmth*.0008,0,1);
-    g=clamp(lum+(g-lum)*sat,0,1);
-    b=clamp(lum+(b-lum)*sat-warmth*.0008,0,1);
-    if(style==='rich'){r=clamp((r-.5)*1.10+.5,0,1);g=clamp((g-.5)*1.10+.5,0,1);b=clamp((b-.5)*1.10+.5,0,1)}
-    if(style==='portrait'){const soft=clamp((.72-l)*.035*amount,0,.025);r=clamp(r+soft,0,1);g=clamp(g+soft*.65,0,1);b=clamp(b+soft*.25,0,1)}
-    if(style==='log'){r=clamp((r-.5)*.88+.5,0,1);g=clamp((g-.5)*.88+.5,0,1);b=clamp((b-.5)*.88+.5,0,1)}
+    const l=0.2126*r+0.7152*g+0.0722*b;
+    const sw=Math.pow(1-l,2.15),hw=l>0.56?(l-0.56)/0.44:0;
+    const k=1+lift*sw-protect*hw*hw;
+    r=clamp(r*k,0,1);g=clamp(g*k,0,1);b=clamp(b*k,0,1);
+    const isSkin=(r-b>0.05&&r-g>0.015&&l>0.18&&l<0.86)?1:0;
+    if(isSkin){r=clamp(r+0.045*amt,0,1);g=clamp(g+0.028*amt,0,1);b=clamp(b+0.008*amt,0,1);}
+    r=clamp(r+0.012*amt,0,1);b=clamp(b-0.01*amt,0,1);
     d[i]=r*255;d[i+1]=g*255;d[i+2]=b*255;
   }
-  c2.putImageData(id,0,0);
-  /* Mild edge sharpening is intentionally capped to avoid halos/noise. */
-  if(sharp&&detail>0&&w>2&&h>2){
-    const src=c2.getImageData(0,0,w,h),sd=src.data,out=c2.createImageData(w,h),od=out.data;
-    od.set(sd);const k=Math.min(.18,detail*.36);
-    for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){const p=(y*w+x)*4;
-      for(let c=0;c<3;c++){const avg=(sd[p-4+c]+sd[p+4+c]+sd[p-w*4+c]+sd[p+w*4+c])*.25;od[p+c]=clamp(sd[p+c]+(sd[p+c]-avg)*k,0,255)}}
-    c2.putImageData(out,0,0);
+  ctx.putImageData(id,0,0);
+}
+
+function drawFrame(source,w,h,amt,mean,p90){
+  if(gpuPreview){
+    gpuPreview.render(source,w,h,amt,mean,p90);
+  }else if(cpuPreviewCtx){
+    if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;}
+    cpuPreviewCtx.imageSmoothingEnabled=true;
+    cpuPreviewCtx.imageSmoothingQuality='high';
+    cpuPreviewCtx.drawImage(source,0,0,w,h);
+    cpuEnhance(cpuPreviewCtx,w,h,amt,mean,p90);
   }
 }
-function applyBokeh(ctx,w,h){
-  if(!$('bokeh')||!$('bokeh').checked)return;
-  const depth=Number($('depth').value),blur=clamp((16-depth)*.42,0,6);
-  if(blur<.2)return;
-  const tmp=document.createElement('canvas');tmp.width=w;tmp.height=h;
-  const t=tmp.getContext('2d');t.filter='blur('+blur+'px)';t.drawImage(ctx.canvas,0,0);t.filter='none';
-  const gx=st.focusX==null?.5:st.focusX,gy=st.focusY==null?.5:st.focusY;
-  const mask=document.createElement('canvas');mask.width=w;mask.height=h;
-  const m=mask.getContext('2d');m.drawImage(tmp,0,0);
-  m.globalCompositeOperation='destination-out';
-  const radius=Math.min(w,h)*clamp(depth/16,.12,.78);
-  const grad=m.createRadialGradient(gx*w,gy*h,radius*.22,gx*w,gy*h,radius);
-  grad.addColorStop(0,'rgba(0,0,0,1)');grad.addColorStop(.72,'rgba(0,0,0,.9)');grad.addColorStop(1,'rgba(0,0,0,0)');
-  m.fillStyle=grad;m.fillRect(0,0,w,h);m.globalCompositeOperation='source-over';
-  ctx.drawImage(mask,0,0);
+
+function fit(w,h,max){const s=Math.min(1,max/Math.max(w,h));return[Math.max(2,Math.round(w*s)&~1),Math.max(2,Math.round(h*s)&~1)]}
+
+function renderPhoto(){
+  if(st.kind!=='photo'||!st.src)return;
+  const{w,h}=st.dim;
+  drawFrame(st.src,w,h,st.hold?0:st.amt/100,st.mean,st.p90);
 }
 
-function fit(w,h,max){const s=Math.min(1,max/Math.max(w,h));return[Math.round(w*s),Math.round(h*s)]}
-
-function render(){
- if(st.kind==='photo'){const{w,h}=st.dim;cv.width=w;cv.height=h;hq();cx.drawImage(st.src,0,0,w,h);enhance(cx,w,h,st.hold?0:st.amt/100,true);if(!st.hold)applyBokeh(cx,w,h)}
+function drawVideoFrame(w,h){
+  if(st.kind!=='video'||vid.readyState<2)return;
+  const tw=w||st.dim.w,th=h||st.dim.h;
+  if(++st.fc%24===1){
+    const s=analyzeScene(vid);
+    st.mean=st.mean*0.6+s.mean*0.4;
+    st.p90=st.p90*0.6+s.p90*0.4;
+  }
+  drawFrame(vid,tw,th,st.hold?0:st.amt/100,st.mean,st.p90);
+  if(st.vtrack&&st.vtrack.requestFrame)st.vtrack.requestFrame();
 }
-function drawV(){
- if(st.kind!=='video'||vid.readyState<2)return;
- const w=cv.width,h=cv.height,t0=performance.now();hq();cx.drawImage(vid,0,0,w,h);
- if(++st.fc%30===1)st.mean=st.mean*.5+meanLuma(vid,w,h)*.5;
- enhance(cx,w,h,st.hold?0:st.amt/100,true);if(!st.hold)applyBokeh(cx,w,h);
- if(st.vtrack&&st.vtrack.requestFrame)st.vtrack.requestFrame();
- if(st.watch){const dt=performance.now()-t0;st.ema=st.ema?st.ema*.9+dt*.1:dt;if(++st.nf>30&&st.ema>30&&st.onSlow)st.onSlow()}}
+
 function loop(){
- const id=++st.lid;
- const step=()=>{if(id!==st.lid||st.kind!=='video')return;drawV();
-  if(vid.requestVideoFrameCallback)vid.requestVideoFrameCallback(step);else st.raf=requestAnimationFrame(step)};
- step()}
+  const id=++st.lid;
+  const step=()=>{
+    if(id!==st.lid||st.kind!=='video'||st.exporting)return;
+    drawVideoFrame();
+    if(vid.requestVideoFrameCallback)vid.requestVideoFrameCallback(step);
+    else st.raf=requestAnimationFrame(step);
+  };
+  step();
+}
 
 function show(kind){
- st.kind=kind;st.lid++;cancelAnimationFrame(st.raf);
- cv.style.display='block';$('empty').style.display='none';$('exp').disabled=false;
- $('play').style.display=kind==='video'?'flex':'none';
- if(kind==='video'){vid.loop=true;vid.muted=false;vid.volume=1;
-  vid.play().catch(()=>{vid.muted=true;vid.play().catch(()=>{});const un=()=>{vid.muted=false;vid.volume=1;if(st.ac&&st.ac.state!=='running')st.ac.resume();removeEventListener('pointerdown',un)};addEventListener('pointerdown',un)});
-  $('play').textContent='❚❚';loop()}else{vid.pause();render()}}
+  st.kind=kind;st.lid++;cancelAnimationFrame(st.raf);
+  cv.style.display='block';$('empty').style.display='none';$('exp').disabled=false;
+  $('pickWrap').classList.add('compact');
+  $('play').style.display=kind==='video'?'flex':'none';
+  if(kind==='video'){
+    vid.loop=true;vid.muted=false;vid.volume=1;vid.playbackRate=1;
+    vid.play().catch(()=>{
+      vid.muted=true;vid.play().catch(()=>{});
+      const un=()=>{vid.muted=false;vid.volume=1;if(st.ac&&st.ac.state!=='running')st.ac.resume();removeEventListener('pointerdown',un)};
+      addEventListener('pointerdown',un);
+    });
+    $('play').textContent='❚❚';
+    loop();
+  }else{
+    vid.pause();
+    renderPhoto();
+  }
+}
 
 $('bg').onclick=()=>$('fg').click();
+$('fg').onchange=e=>{
+  const f=e.target.files[0];e.target.value='';
+  if(!f)return;
+  const n=f.name||'',
+        isV=f.type.startsWith('video')||/\.(mp4|mov|m4v|webm|3gp|mkv|avi)$/i.test(n),
+        isI=f.type.startsWith('image')||/\.(jpe?g|png|webp|gif|bmp|heic|heif|avif)$/i.test(n);
+  if(isV)loadVideo(f);else if(isI)loadPhoto(f);else toast('Please pick a photo or video file.',3200);
+};
 
-$('fg').onchange=e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
- const n=f.name||'',isV=f.type.startsWith('video')||/\.(mp4|mov|m4v|webm|3gp|mkv|avi)$/i.test(n),isI=f.type.startsWith('image')||/\.(jpe?g|png|webp|gif|bmp|heic|heif|avif)$/i.test(n);
- if(isV)loadVideo(f);else if(isI)loadPhoto(f);else toast('Please pick a photo or video file.',3500)};
-function loadPhoto(f){vid.pause();
- const img=new Image();img.onload=()=>{const[w,h]=fit(img.naturalWidth,img.naturalHeight,MAXP);
-  st.src=img;st.dim={w,h};st.full=img;st.mean=meanLuma(img,img.naturalWidth,img.naturalHeight);show('photo')};
- img.onerror=()=>toast('Could not open that photo.');img.src=URL.createObjectURL(f)}
+function loadPhoto(f){
+  vid.pause();
+  if(st.imgUrl)URL.revokeObjectURL(st.imgUrl);
+  st.imgUrl=URL.createObjectURL(f);
+  const img=new Image();
+  img.onload=()=>{
+    const[w,h]=fit(img.naturalWidth,img.naturalHeight,MAXP);
+    st.src=img;st.full=img;st.dim={w,h};
+    const s=analyzeScene(img);st.mean=s.mean;st.p90=s.p90;
+    show('photo');
+  };
+  img.onerror=()=>toast('Could not open that photo.');
+  img.src=st.imgUrl;
+}
+
 function loadVideo(f){
- if(st.url)URL.revokeObjectURL(st.url);st.url=URL.createObjectURL(f);st.file=f;
- vid.onloadeddata=()=>{const[w,h]=fit(vid.videoWidth,vid.videoHeight,MAXV);cv.width=w;cv.height=h;st.fc=0;st.mean=meanLuma(vid,w,h);show('video')};
- vid.onerror=()=>toast('This video format can’t be opened here.');
- vid.src=st.url;vid.load()}
-$('stage').onclick=e=>{if(st.kind!=='video'||e.target.closest('.pick'))return;
- if(vid.paused){vid.play();$('play').textContent='❚❚'}else{vid.pause();$('play').textContent='▶'}};
+  if(st.url)URL.revokeObjectURL(st.url);
+  st.url=URL.createObjectURL(f);st.file=f;
+  vid.onloadeddata=()=>{
+    const[w,h]=fit(vid.videoWidth,vid.videoHeight,MAXV);
+    st.dim={w,h};cv.width=w;cv.height=h;st.fc=0;
+    const s=analyzeScene(vid);st.mean=s.mean;st.p90=s.p90;
+    show('video');
+  };
+  vid.onerror=()=>toast('This video format cannot be opened here.');
+  vid.src=st.url;vid.load();
+}
+
+$('stage').onclick=e=>{
+  if(st.kind!=='video'||e.target.closest('.pick'))return;
+  if(vid.paused){vid.play();$('play').textContent='❚❚'}else{vid.pause();$('play').textContent='▶'}
+};
+$('play').onclick=e=>{
+  e.stopPropagation();
+  if(vid.paused){vid.play();$('play').textContent='❚❚'}else{vid.pause();$('play').textContent='▶'}
+};
 
 const sl=$('sl');
-sl.oninput=()=>{st.amt=+sl.value;$('out').textContent=st.amt+'%';sl.style.setProperty('--p',st.amt+'%');if(st.kind==='photo')render();else if(st.kind==='video'&&vid.paused)drawV()};
+sl.oninput=()=>{
+  st.amt=+sl.value;$('out').textContent=st.amt+'%';
+  sl.style.setProperty('--p',st.amt+'%');
+  if(st.kind==='photo')renderPhoto();
+  else if(st.kind==='video'&&vid.paused)drawVideoFrame();
+};
 sl.oninput();
 
-/* Camera studio control wiring */
-function refreshStudio(){if(st.kind==='photo')render();else if(st.kind==='video'&&vid.paused)drawV()}
-['aperture','depth','warmth','sharpness'].forEach(id=>$(id).addEventListener('input',()=>{
- const v=$(id).value, out=$(id==='aperture'?'apertureOut':id==='depth'?'depthOut':id==='warmth'?'warmthOut':'sharpnessOut');
- if(out)out.textContent=id==='aperture'?'f/'+Number(v).toFixed(2):id==='depth'?'f/'+Number(v).toFixed(1):id==='warmth'?v:Number(v)+'%';
- refreshStudio();
-}));
-['autoAperture','bokeh','style','frame'].forEach(id=>$(id).addEventListener('change',()=>{
- if(id==='style')$('styleOut').textContent=$('style').selectedOptions[0].text;
- refreshStudio();
-}));
-$('stage').addEventListener('pointerdown',e=>{
- if(!st.kind||e.target.closest('.pick')||e.target.id==='play')return;
- const r=cv.getBoundingClientRect();st.focusX=clamp((e.clientX-r.left)/r.width,0,1);st.focusY=clamp((e.clientY-r.top)/r.height,0,1);
- toast('Focus point locked');refreshStudio();
-});
-$('play').onclick=e=>{e.stopPropagation();if(vid.paused){vid.play();$('play').textContent='❚❚'}else{vid.pause();$('play').textContent='▶'}};
 const cmp=$('cmp');
-function hold(on){if(st.hold===on)return;st.hold=on;cmp.classList.toggle('on',on);$('badge').classList.toggle('on',on);if(st.kind==='photo')render();else if(st.kind==='video'&&vid.paused)drawV()}
+function hold(on){
+  if(st.hold===on)return;
+  st.hold=on;cmp.classList.toggle('on',on);$('badge').classList.toggle('on',on);
+  if(st.kind==='photo')renderPhoto();
+  else if(st.kind==='video'&&vid.paused)drawVideoFrame();
+}
 cmp.addEventListener('pointerdown',e=>{e.preventDefault();cmp.setPointerCapture(e.pointerId);hold(true)});
 ['pointerup','pointercancel','lostpointercapture'].forEach(n=>cmp.addEventListener(n,()=>hold(false)));
 cmp.addEventListener('contextmenu',e=>e.preventDefault());
 cmp.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();hold(true)}});
 cmp.addEventListener('keyup',()=>hold(false));
 
-/* Export + simulated rewarded ad */
+/* ============================================================================
+   Guaranteed Google AdMob Integration (Preload + Retry + Instant Backup)
+   ============================================================================ */
 const ADMOB_REWARDED_ID_REAL=(window.GBC_CFG&&window.GBC_CFG.rewardedId)||'ca-app-pub-1069125783691383/4387347779';
-const USE_TEST_ADS=false; /* set true while testing so you never click your own live ads */
+const USE_TEST_ADS=false;
 const ADMOB_REWARDED_ID=USE_TEST_ADS?'ca-app-pub-3940256099942544/5224354917':ADMOB_REWARDED_ID_REAL;
-$('exp').onclick=()=>{if(!st.kind||st.busy)return;st.busy=true;runAd()};
-$('offok').onclick=()=>$('off').classList.remove('on');
 const ADMOB_INTERSTITIAL_ID=USE_TEST_ADS?'ca-app-pub-3940256099942544/1033173712':((window.GBC_CFG&&window.GBC_CFG.interstitialId)||'');
-const Ads={inited:false,R:{ready:false,p:null,fails:0,t:0},I:{ready:false,p:null,fails:0,t:0},onReward:null,onEnd:null,onFail:null};
-const backoff=n=>Math.min(60000,2000*Math.pow(2,Math.max(0,n-1)));
+
+const Ads={
+  inited:false,initP:null,
+  R:{ready:false,p:null,fails:0,t:0},
+  I:{ready:false,p:null,fails:0,t:0},
+  onReward:null,onEnd:null,onFail:null
+};
+const backoff=n=>Math.min(15000,1500*Math.pow(1.8,Math.max(0,n-1)));
+
+function getAdMobPlugin(){
+  return plug('AdMob')||window.AdMob||null;
+}
+
 async function adsInit(){
- if(Ads.inited)return true;const A=plug('AdMob');if(!A)return false;
- try{
-  await A.initialize({initializeForTesting:USE_TEST_ADS});
-  A.addListener('onRewardedVideoAdLoaded',()=>{Ads.R.ready=true;Ads.R.fails=0});
-  A.addListener('onRewardedVideoAdFailedToLoad',()=>{Ads.R.ready=false});
-  A.addListener('onRewardedVideoAdReward',()=>{Ads.onReward&&Ads.onReward()});
-  A.addListener('onRewardedVideoAdDismissed',()=>{Ads.R.ready=false;Ads.onEnd&&Ads.onEnd();setTimeout(()=>adsPreload('R'),800)});
-  A.addListener('onRewardedVideoAdFailedToShow',()=>{Ads.R.ready=false;Ads.onFail&&Ads.onFail();setTimeout(()=>adsPreload('R'),800)});
-  A.addListener('onInterstitialAdLoaded',()=>{Ads.I.ready=true;Ads.I.fails=0});
-  A.addListener('onInterstitialAdFailedToLoad',()=>{Ads.I.ready=false});
-  A.addListener('onInterstitialAdDismissed',()=>{Ads.I.ready=false;Ads.onEnd&&Ads.onEnd();setTimeout(()=>adsPreload('I'),800)});
-  A.addListener('onInterstitialAdFailedToShow',()=>{Ads.I.ready=false;Ads.onFail&&Ads.onFail();setTimeout(()=>adsPreload('I'),800)});
-  Ads.inited=true;return true
- }catch(e){return false}}
+  if(Ads.inited)return true;
+  if(Ads.initP)return Ads.initP;
+  const A=getAdMobPlugin();
+  if(!A)return false;
+  Ads.initP=(async()=>{
+    try{
+      if(typeof A.initialize==='function')await A.initialize({initializeForTesting:USE_TEST_ADS});
+      const add=typeof A.addListener==='function'?A.addListener.bind(A):null;
+      if(add){
+        const rLoaded=()=>{Ads.R.ready=true;Ads.R.fails=0};
+        const rFailed=()=>{Ads.R.ready=false};
+        const rReward=()=>{Ads.onReward&&Ads.onReward()};
+        const rEnd=()=>{Ads.R.ready=false;Ads.onEnd&&Ads.onEnd();setTimeout(()=>adsPreload('R'),350)};
+        const rFailShow=()=>{Ads.R.ready=false;Ads.onFail&&Ads.onFail();setTimeout(()=>adsPreload('R'),350)};
+
+        ['onRewardedVideoAdLoaded','rewardedVideoAdLoaded'].forEach(ev=>{try{add(ev,rLoaded)}catch(e){}});
+        ['onRewardedVideoAdFailedToLoad','rewardedVideoAdFailedToLoad'].forEach(ev=>{try{add(ev,rFailed)}catch(e){}});
+        ['onRewardedVideoAdReward','rewardedVideoAdReward'].forEach(ev=>{try{add(ev,rReward)}catch(e){}});
+        ['onRewardedVideoAdDismissed','rewardedVideoAdDismissed'].forEach(ev=>{try{add(ev,rEnd)}catch(e){}});
+        ['onRewardedVideoAdFailedToShow','rewardedVideoAdFailedToShow'].forEach(ev=>{try{add(ev,rFailShow)}catch(e){}});
+
+        const iLoaded=()=>{Ads.I.ready=true;Ads.I.fails=0};
+        const iFailed=()=>{Ads.I.ready=false};
+        const iEnd=()=>{Ads.I.ready=false;Ads.onEnd&&Ads.onEnd();setTimeout(()=>adsPreload('I'),350)};
+        const iFailShow=()=>{Ads.I.ready=false;Ads.onFail&&Ads.onFail();setTimeout(()=>adsPreload('I'),350)};
+
+        ['onInterstitialAdLoaded','interstitialAdLoaded'].forEach(ev=>{try{add(ev,iLoaded)}catch(e){}});
+        ['onInterstitialAdFailedToLoad','interstitialAdFailedToLoad'].forEach(ev=>{try{add(ev,iFailed)}catch(e){}});
+        ['onInterstitialAdDismissed','interstitialAdDismissed'].forEach(ev=>{try{add(ev,iEnd)}catch(e){}});
+        ['onInterstitialAdFailedToShow','interstitialAdFailedToShow'].forEach(ev=>{try{add(ev,iFailShow)}catch(e){}});
+      }
+      Ads.inited=true;
+      return true;
+    }catch(e){
+      return false;
+    }finally{Ads.initP=null}
+  })();
+  return Ads.initP;
+}
+
 function adsPreload(k){
- const S=Ads[k];
- if(k==='I'&&!ADMOB_INTERSTITIAL_ID)return Promise.resolve('disabled');
- if(S.ready)return Promise.resolve('ready');
- if(S.p)return S.p;
- if(!navigator.onLine||!Ads.inited)return Promise.resolve('offline');
- const A=plug('AdMob');
- S.p=(async()=>{try{
-   if(k==='R')await A.prepareRewardVideoAd({adId:ADMOB_REWARDED_ID,isTesting:USE_TEST_ADS});
-   else await A.prepareInterstitial({adId:ADMOB_INTERSTITIAL_ID,isTesting:USE_TEST_ADS});
-   S.ready=true;S.fails=0;return'ready'}
-  catch(e){S.ready=false;S.fails++;clearTimeout(S.t);S.t=setTimeout(()=>adsPreload(k),backoff(S.fails));
-   return(e&&e.code===3)||/no.?fill/i.test((e&&e.message)||'')?'nofill':'error'}
-  finally{S.p=null}})();
- return S.p}
+  const S=Ads[k];
+  if(k==='I'&&!ADMOB_INTERSTITIAL_ID)return Promise.resolve('disabled');
+  if(S.ready)return Promise.resolve('ready');
+  if(S.p)return S.p;
+  if(!navigator.onLine)return Promise.resolve('offline');
+  S.p=(async()=>{
+    if(!(await adsInit()))return'no_plugin';
+    const A=getAdMobPlugin();
+    try{
+      if(k==='R'){
+        if(typeof A.prepareRewardVideoAd==='function')await A.prepareRewardVideoAd({adId:ADMOB_REWARDED_ID,isTesting:USE_TEST_ADS});
+        else if(typeof A.prepareRewardedVideoAd==='function')await A.prepareRewardedVideoAd({adId:ADMOB_REWARDED_ID,isTesting:USE_TEST_ADS});
+      }else{
+        if(typeof A.prepareInterstitial==='function')await A.prepareInterstitial({adId:ADMOB_INTERSTITIAL_ID,isTesting:USE_TEST_ADS});
+      }
+      S.ready=true;S.fails=0;
+      return'ready';
+    }catch(e){
+      S.ready=false;S.fails++;
+      clearTimeout(S.t);
+      S.t=setTimeout(()=>{if(navigator.onLine)adsPreload(k)},backoff(S.fails));
+      return'error';
+    }finally{S.p=null}
+  })();
+  return S.p;
+}
+
 function adsPreloadAll(){return Promise.all([adsPreload('R'),adsPreload('I')])}
-async function adsStart(){if(await adsInit())adsPreloadAll()}
-const waitOnline=ms=>new Promise(res=>{if(navigator.onLine)return res(true);let done=false;
- const f=()=>{if(done)return;done=true;removeEventListener('online',f);res(true)};addEventListener('online',f);
- setTimeout(()=>{if(done)return;done=true;removeEventListener('online',f);res(navigator.onLine)},ms)});
+async function adsStart(){if(navigator.onLine&&await adsInit())adsPreloadAll()}
+
+const waitOnline=ms=>new Promise(res=>{
+  if(navigator.onLine)return res(true);
+  let done=false;
+  const f=()=>{if(done)return;done=true;removeEventListener('online',f);res(true)};
+  addEventListener('online',f);
+  setTimeout(()=>{if(done)return;done=true;removeEventListener('online',f);res(navigator.onLine)},ms);
+});
+
+async function showOneAd(kind){
+  const A=getAdMobPlugin();
+  let got=false,failed=false,settled=false,sawHidden=false;
+  let resolveAd;
+  const doneP=new Promise(r=>resolveAd=r);
+  const cleanup=()=>{document.removeEventListener('visibilitychange',onVis)};
+  const finish=()=>{if(settled)return;settled=true;cleanup();resolveAd({got,failed})};
+  const onVis=()=>{
+    if(document.hidden){sawHidden=true;return}
+    if(sawHidden)setTimeout(()=>{if(!settled)finish()},1200);
+  };
+  document.addEventListener('visibilitychange',onVis);
+
+  Ads.onReward=()=>{got=true};
+  Ads.onEnd=()=>setTimeout(finish,150);
+  Ads.onFail=()=>{failed=true;setTimeout(finish,150)};
+  Ads[kind].ready=false;
+
+  try{
+    if(kind==='R'){
+      const r=typeof A.showRewardVideoAd==='function'?await A.showRewardVideoAd():await A.showRewardedVideoAd();
+      if(r&&(r.type!==undefined||r.amount!==undefined)){
+        got=true;
+        setTimeout(finish,450);
+      }else if(sawHidden&&!document.hidden){
+        setTimeout(finish,800);
+      }
+    }else{
+      await A.showInterstitial();
+      got=true;
+      setTimeout(finish,450);
+    }
+  }catch(e){
+    failed=true;
+    finish();
+  }
+  return doneP;
+}
+
+$('exp').onclick=()=>{if(!st.kind||st.busy)return;st.busy=true;runAd()};
 
 async function runAd(){
- st.wasPlaying=st.kind==='video'&&!vid.paused;if(st.wasPlaying)vid.pause();
- $('ring').textContent='…';$('bar').style.width='0';$('bar').classList.add('ind');$('pct').textContent='';
- $('adfoot').textContent='Checking connection…';$('ad').classList.add('on');
- let exportP=null,got=false,failed=false,kind=null,dismissed;const ended=new Promise(r=>dismissed=r);
- const noAd=async m=>{toast(m,3000);exportP=doExport();await exportP};
- try{
-  /* short connectivity check: if still offline, export gracefully without an ad */
-  if(!navigator.onLine&&!(await waitOnline(1500))){await noAd('You’re offline. Exporting without an ad.');return}
-  $('adfoot').textContent='Loading ad…';
-  if(!(await adsInit())){await noAd('Ads unavailable. Exporting now.');return}
-  /* rewarded first, interstitial as automatic fallback while rewarded is still caching */
-  const t0=Date.now();let nextTry=0;
-  for(;;){
-   if(Ads.R.ready){kind='R';break}
-   if(Ads.I.ready){kind='I';break}
-   if(!navigator.onLine||Date.now()-t0>=6000)break;
-   if(Date.now()>=nextTry){adsPreloadAll();nextTry=Date.now()+2000}
-   await wait(200)}
-  if(!kind){await noAd(navigator.onLine?'No ad available right now. Exporting…':'You’re offline. Exporting without an ad.');return}
-  Ads.onReward=()=>{if(got)return;got=true;if(st.kind!=='video')exportP=doExport()};
-  Ads.onEnd=()=>setTimeout(dismissed,400);
-  Ads.onFail=()=>{failed=true;Ads.onEnd()};
-  const A=plug('AdMob');Ads[kind].ready=false;
+  st.wasPlaying=st.kind==='video'&&!vid.paused;
+  if(st.wasPlaying)vid.pause();
+  $('ring').textContent='…';$('bar').style.width='0';$('bar').classList.add('ind');$('pct').textContent='';
+  $('adfoot').textContent='Checking connection…';$('ad').classList.add('on');
+
   try{
-   if(kind==='R'){const r=await A.showRewardVideoAd();if(r&&(r.type!==undefined||r.amount!==undefined))Ads.onReward()}
-   else await A.showInterstitial()
-  }catch(e){failed=true;Ads.onEnd()}
-  await ended;
-  if(!exportP){
-   if(got||failed||kind==='I')exportP=doExport();
-   else{closeAd();toast('Watch the full ad to unlock Export.',3500);return}}
-  await exportP;
- }catch(e){closeAd();toast('Something went wrong: '+((e&&e.message)||e),4000)}
- finally{Ads.onReward=Ads.onEnd=Ads.onFail=null;setTimeout(adsPreloadAll,1000)}
+    /* Skip AdMob ONLY when the device has zero internet connection */
+    if(!navigator.onLine&&!(await waitOnline(1200))){
+      toast('Offline — exporting without an ad.',2600);
+      await doExport();
+      return;
+    }
+
+    $('adfoot').textContent='Loading ad…';
+    if(!(await adsInit())){
+      await doExport();
+      return;
+    }
+
+    /* Wait up to 10s with active preloading; trigger Interstitial immediately if Rewarded is still loading */
+    let kind=null;
+    const t0=Date.now();
+    let nextTry=0;
+    for(;;){
+      if(Ads.R.ready){kind='R';break}
+      if(Ads.I.ready){kind='I';break}
+      if(!navigator.onLine||Date.now()-t0>=10000)break;
+      if(Date.now()>=nextTry){adsPreloadAll();nextTry=Date.now()+1800}
+      await wait(150);
+    }
+
+    if(kind){
+      let res=await showOneAd(kind);
+      /* If Rewarded failed to show, instantly try Interstitial backup if available */
+      if(res.failed&&kind==='R'&&Ads.I.ready){
+        res=await showOneAd('I');
+      }
+      if(kind==='R'&&!res.got&&!res.failed){
+        closeAd();
+        toast('Watch the full ad to unlock Export.',3200);
+        return;
+      }
+    }
+
+    await doExport();
+  }catch(e){
+    closeAd();
+    toast('Export error: '+((e&&e.message)||e),3800);
+  }finally{
+    Ads.onReward=Ads.onEnd=Ads.onFail=null;
+    setTimeout(()=>{if(navigator.onLine)adsPreloadAll()},400);
+  }
 }
-new MutationObserver(()=>{const t=$('adfoot').textContent,m=/(\d+)%/.exec(t),bar=$('bar');
- if(m){bar.classList.remove('ind');bar.style.width=m[1]+'%';$('pct').textContent=m[1]+'%';$('adh').textContent='Exporting HD video'}
- else if(/^Saving/.test(t)){$('adh').textContent='Saving to Gallery';$('pct').textContent='';bar.classList.add('ind')}
- else if(/^(Reading|Preparing video|Optimizing|Rendering)/.test(t)){$('adh').textContent='Exporting HD video';bar.classList.add('ind')}
- else if(/^(Loading|Checking)/.test(t)){$('adh').textContent='Loading ad…';$('pct').textContent='';bar.classList.add('ind')}
+
+new MutationObserver(()=>{
+  const t=$('adfoot').textContent,m=/(\d+)%/.exec(t),bar=$('bar');
+  if(m){bar.classList.remove('ind');bar.style.width=m[1]+'%';$('pct').textContent=m[1]+'%';$('adh').textContent='Exporting HD video'}
+  else if(/^Saving/.test(t)){$('adh').textContent='Saving to Gallery';$('pct').textContent='';bar.classList.add('ind')}
+  else if(/^(Preparing|Rendering|Optimizing)/.test(t)){$('adh').textContent='Exporting HD video';bar.classList.add('ind')}
+  else if(/^(Loading|Checking)/.test(t)){$('adh').textContent='Loading ad…';$('pct').textContent='';bar.classList.add('ind')}
 }).observe($('adfoot'),{childList:true,characterData:true,subtree:true});
-function closeAd(){$('ad').classList.remove('on');st.busy=false;if(st.kind==='video'&&st.wasPlaying&&!st.exporting){st.wasPlaying=false;vid.play().catch(()=>{})}}
-function retryBtn(fn){const f=$('adfoot');f.innerHTML='';const b=document.createElement('button');b.className='btn';b.textContent='Save file';b.onclick=fn;f.append(b)}
+
+function closeAd(){
+  $('ad').classList.remove('on');st.busy=false;
+  if(st.kind==='video'&&st.wasPlaying&&!st.exporting){
+    st.wasPlaying=false;vid.play().catch(()=>{});
+  }
+}
 
 function b64(blob){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(blob)})}
+
 async function save(name,blob){
- try{
-  const F=plug('Filesystem');if(!F)throw new Error('Saving works in the installed Android app.');
-  try{await F.requestPermissions()}catch(e){}
-  const tries=[['EXTERNAL_STORAGE','Pictures/G-Book Camera/'],['DOCUMENTS','G-Book Camera/'],['DATA','']],CH=3*1024*1024;
-  for(const [directory,pre] of tries){
-   try{
-    for(let o=0,i=0;o<blob.size||i===0;o+=CH,i++){
-     const data=await b64(blob.slice(o,o+CH));
-     if(i===0)await F.writeFile({path:pre+name,data,directory,recursive:true});
-     else await F.appendFile({path:pre+name,data,directory})}
-    if(directory==='EXTERNAL_STORAGE'){try{const M=plug('MediaScan');if(M)await M.scan({path:pre+name})}catch(e){}}
-    toast('Saved: '+(pre||'app storage/')+name,3500);closeAd();return}catch(e){}}
-  throw new Error('no writable folder');
- }catch(e){toast('Could not save: '+((e&&e.message)||e),4500);closeAd()}}
+  try{
+    if(!blob||!blob.size)throw new Error('Empty export file');
+    const F=plug('Filesystem');
+    if(!F){
+      /* Web browser fallback download */
+      const u=URL.createObjectURL(blob);
+      const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();
+      setTimeout(()=>URL.revokeObjectURL(u),4000);
+      toast('Saved: '+name,3200);closeAd();return;
+    }
+    try{await F.requestPermissions()}catch(e){}
+    const tries=[['EXTERNAL_STORAGE','Pictures/G-Book Camera/'],['DOCUMENTS','G-Book Camera/'],['DATA','']],CH=1536*1024;
+    for(const[directory,pre]of tries){
+      try{
+        for(let o=0,i=0;o<blob.size||i===0;o+=CH,i++){
+          const data=await b64(blob.slice(o,o+CH));
+          if(i===0)await F.writeFile({path:pre+name,data,directory,recursive:true});
+          else await F.appendFile({path:pre+name,data,directory});
+        }
+        if(directory==='EXTERNAL_STORAGE'){
+          try{const M=plug('MediaScan');if(M)await M.scan({path:pre+name})}catch(e){}
+        }
+        toast('Saved to Gallery: '+name,3500);closeAd();return;
+      }catch(e){}
+    }
+    throw new Error('No writable storage folder');
+  }catch(e){
+    toast('Could not save: '+((e&&e.message)||e),4200);closeAd();
+  }
+}
 
 async function doExport(){
- try{
-  if(st.kind==='photo'){
-   const im=st.full,[w,h]=fit(im.naturalWidth,im.naturalHeight,3264),c=document.createElement('canvas');c.width=w;c.height=h;
-   const x=c.getContext('2d',{willReadFrequently:true});x.imageSmoothingQuality='high';x.drawImage(im,0,0,w,h);
-   enhance(x,w,h,st.amt/100,true);applyBokeh(x,w,h);
-   const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',.95));
-   $('adfoot').textContent='Saving…';await save('G-Book-Camera-HD.jpg',blob)
-  }else{await exportVideo()}
- }catch(e){toast('Export failed: '+(e&&e.message||e),4000);closeAd()}}
+  const stamp=new Date().toISOString().replace(/[:.T-]/g,'').slice(0,14);
+  try{
+    if(st.kind==='photo'){
+      $('adfoot').textContent='Saving…';
+      const im=st.full,[w,h]=fit(im.naturalWidth,im.naturalHeight,3264);
+      const c=document.createElement('canvas');c.width=w;c.height=h;
+      const gl=createGLRenderer(c);
+      if(gl){
+        gl.render(im,w,h,st.amt/100,st.mean,st.p90);
+      }else{
+        const x=c.getContext('2d',{willReadFrequently:true});
+        x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';
+        x.drawImage(im,0,0,w,h);
+        cpuEnhance(x,w,h,st.amt/100,st.mean,st.p90);
+      }
+      const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',0.95));
+      await save('GBook-Camera-'+stamp+'.jpg',blob);
+    }else{
+      await exportVideo(stamp);
+    }
+  }catch(e){
+    toast('Export failed: '+((e&&e.message)||e),3800);closeAd();
+  }
+}
+
+/* ============================================================================
+   Ultra-Fast GPU Video Export Pipeline (CapCut Speed + 100% Clear Audio)
+   ============================================================================ */
+function seek0(){
+  return new Promise(r=>{
+    if(vid.currentTime<0.02){r();return}
+    let done=false;
+    const fin=()=>{if(done)return;done=true;vid.onseeked=null;r()};
+    vid.onseeked=fin;vid.currentTime=0;setTimeout(fin,900);
+  });
+}
+
+function snapFps(f){
+  for(const v of[23.976,24,25,29.97,30,48,50,59.94,60])
+    if(Math.abs(f-v)/v<0.015)return v;
+  return clamp(Math.round(f)||30,15,60);
+}
+
+async function quickProbeFps(){
+  if(!vid.requestVideoFrameCallback)return 30;
+  const ts=[];
+  await new Promise(res=>{
+    let done=false;
+    const fin=()=>{if(done)return;done=true;res()};
+    const cb=(n,m)=>{
+      ts.push(m.mediaTime);
+      if(ts.length>=5)fin();
+      else vid.requestVideoFrameCallback(cb);
+    };
+    vid.requestVideoFrameCallback(cb);
+    vid.play().catch(fin);
+    setTimeout(fin,450);
+  });
+  vid.pause();
+  const d=[];
+  for(let i=1;i<ts.length;i++){const dt=ts[i]-ts[i-1];if(dt>0.002&&dt<0.2)d.push(dt)}
+  if(!d.length)return 30;
+  d.sort((a,b)=>a-b);
+  return snapFps(1/d[d.length>>1]);
+}
+
+async function decodeOriginalAudio(){
+  try{
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC||!st.file)return null;
+    const ac=new AC({sampleRate:48000});
+    try{
+      const ab=await st.file.arrayBuffer();
+      return await ac.decodeAudioData(ab);
+    }catch(e){
+      return null;
+    }finally{try{ac.close()}catch(e){}}
+  }catch(e){return null}
+}
+
+async function exportMP4Fast(){
+  if(!(window.VideoEncoder&&window.AudioEncoder&&window.VideoFrame&&window.AudioData&&window.Mp4Muxer&&vid.requestVideoFrameCallback))return null;
+  const dur=vid.duration;
+  if(!isFinite(dur)||dur<=0)return null;
+  const foot=$('adfoot');
+  st.exporting=true;st.hold=false;st.lid++;
+  vid.loop=false;vid.muted=true;vid.pause();
+
+  try{
+    foot.textContent='Preparing video…';
+    const[w,h]=fit(vid.videoWidth,vid.videoHeight,1280);
+    cv.width=w;cv.height=h;
+    const[fps,buf]=await Promise.all([quickProbeFps(),decodeOriginalAudio()]);
+    await seek0();
+
+    const bitrate=Math.round(clamp(w*h*fps*0.18,3.2e6,12e6));
+    const vcfg={width:w,height:h,bitrate,framerate:fps,latencyMode:'realtime',hardwareAcceleration:'prefer-hardware',avc:{format:'avc'}};
+    let vc=null;
+    for(const c of['avc1.64002A','avc1.4D402A','avc1.42E02A','avc1.4D401F','avc1.42E01F']){
+      try{if((await VideoEncoder.isConfigSupported({...vcfg,codec:c})).supported){vc=c;break}}catch(e){}
+    }
+    if(!vc){
+      delete vcfg.hardwareAcceleration;
+      for(const c of['avc1.4D402A','avc1.42E01F']){
+        try{if((await VideoEncoder.isConfigSupported({...vcfg,codec:c})).supported){vc=c;break}}catch(e){}
+      }
+    }
+    if(!vc)return null;
+
+    const sr=buf?buf.sampleRate:0;
+    let useAudio=!!buf;
+    const acfg={codec:'mp4a.40.2',sampleRate:sr,numberOfChannels:2,bitrate:192000};
+    if(useAudio){
+      try{if(!(await AudioEncoder.isConfigSupported(acfg)).supported)useAudio=false}catch(e){useAudio=false}
+    }
+
+    const target=new Mp4Muxer.ArrayBufferTarget();
+    const mux=new Mp4Muxer.Muxer({
+      target,
+      video:{codec:'avc',width:w,height:h},
+      ...(useAudio?{audio:{codec:'aac',numberOfChannels:2,sampleRate:sr}}:{}),
+      fastStart:'in-memory'
+    });
+
+    let encErr=null;
+    const venc=new VideoEncoder({output:(c,m)=>mux.addVideoChunk(c,m),error:e=>{encErr=e}});
+    venc.configure({...vcfg,codec:vc});
+
+    const aenc=useAudio?new AudioEncoder({output:(c,m)=>mux.addAudioChunk(c,m),error:e=>{encErr=e}}):null;
+    if(aenc)aenc.configure(acfg);
+
+    /* Encode entire 100% original audio buffer cleanly at exact 1.0x timestamps */
+    if(aenc&&buf){
+      const totalSamples=Math.min(buf.length,Math.round(dur*sr));
+      const c0=buf.getChannelData(0),c1=buf.numberOfChannels>1?buf.getChannelData(1):c0;
+      const chunk=4096;
+      for(let pos=0;pos<totalSamples;pos+=chunk){
+        const n=Math.min(chunk,totalSamples-pos);
+        const data=new Float32Array(n*2);
+        data.set(c0.subarray(pos,pos+n),0);
+        data.set(c1.subarray(pos,pos+n),n);
+        aenc.encode(new AudioData({
+          format:'f32-planar',sampleRate:sr,numberOfFrames:n,numberOfChannels:2,
+          timestamp:Math.round(pos*1e6/sr),data
+        }));
+      }
+    }
+
+    /* Hardware-accelerated WebGL GPU frame encoding at up to 2.0x playback speed, locked to exact 1.0x timestamps */
+    const td=1/fps,totalFrames=Math.max(1,Math.round(dur*fps)),kf=Math.max(1,Math.round(fps*2));
+    let nextN=0,lastM=-1,done=false;
+    let fastRate=fps<=32?2.0:1.0;
+
+    const emit=()=>{
+      const f=new VideoFrame(cv,{timestamp:Math.round(nextN*1e6/fps),duration:Math.round(1e6/fps)});
+      venc.encode(f,{keyFrame:nextN%kf===0});
+      f.close();
+      nextN++;
+    };
+
+    const onFrame=(now,meta)=>{
+      if(done||encErr)return;
+      vid.requestVideoFrameCallback(onFrame);
+      const m=meta.mediaTime;
+      if(lastM>=0&&m-lastM>td*1.65&&fastRate>1.0){
+        fastRate=1.0;
+        vid.playbackRate=1.0;
+      }
+      lastM=m;
+      while(nextN<totalFrames&&nextN*td<m-td*0.5)emit();
+      drawVideoFrame(w,h);
+      while(nextN<totalFrames&&nextN*td<m+td*0.5)emit();
+      foot.textContent='Rendering HD… '+Math.min(99,Math.round(100*m/dur))+'%';
+      if(venc.encodeQueueSize>8&&vid.playbackRate>0.5)vid.playbackRate=0.5;
+      else if(venc.encodeQueueSize<=2&&vid.playbackRate!==fastRate)vid.playbackRate=fastRate;
+    };
+
+    vid.playbackRate=fastRate;vid.defaultPlaybackRate=fastRate;
+    const endP=new Promise(res=>{vid.onended=res});
+    drawVideoFrame(w,h);
+    vid.requestVideoFrameCallback(onFrame);
+    await vid.play();
+    await endP;
+    done=true;vid.pause();vid.onended=null;
+
+    if(encErr){try{venc.close();if(aenc)aenc.close()}catch(e){}return null}
+    while(nextN<totalFrames)emit();
+    await venc.flush();
+    if(aenc)await aenc.flush();
+    venc.close();if(aenc)aenc.close();
+    if(encErr)return null;
+
+    mux.finalize();
+    return new Blob([target.buffer],{type:'video/mp4'});
+  }finally{
+    st.exporting=false;st.vtrack=null;vid.onended=null;
+    vid.loop=true;vid.muted=false;vid.volume=1;
+    vid.playbackRate=1;vid.defaultPlaybackRate=1;
+    const[pw,ph]=fit(vid.videoWidth,vid.videoHeight,MAXV);
+    st.dim={w:pw,h:ph};cv.width=pw;cv.height=ph;
+    await seek0();vid.play().catch(()=>{});loop();
+  }
+}
+
 function prepAudio(){
- try{
-  if(!st.ac){const AC=window.AudioContext||window.webkitAudioContext;st.ac=new AC();
-   st.asrc=st.ac.createMediaElementSource(vid);st.mon=st.ac.createGain();st.adst=st.ac.createMediaStreamDestination();
-   st.asrc.connect(st.adst);st.asrc.connect(st.mon);st.mon.connect(st.ac.destination)}
-  if(st.ac.state!=='running')st.ac.resume()
- }catch(e){}}
-function pickSize(level,lim){lim=lim||22;
- const vw=vid.videoWidth,vh=vid.videoHeight,t=Math.max(st.amt/100,.6),S=[1920,1280,960,640];
- for(let i=level;i<4;i++){
-  let[w,h]=fit(vw,vh,S[i]);w&=~1;h&=~1;cv.width=w;cv.height=h;hq();let tt=0;
-  for(let k=0;k<3;k++){const t0=performance.now();cx.drawImage(vid,0,0,w,h);enhance(cx,w,h,t,true);tt+=performance.now()-t0}
-  if(tt/3<=lim||i===3)return[w,h,i,tt/3]}}
-async function recordOnce(mt,level){
- vid.pause();
- if(vid.currentTime>.05){await new Promise(r=>{vid.onseeked=r;vid.currentTime=0;setTimeout(r,700)});vid.onseeked=null}
- const[w,h,idx]=pickSize(level),foot=$('adfoot');st.nf=0;st.ema=0;
- let fs=cv.captureStream(0),vt=fs.getVideoTracks()[0];
- if(!vt||!vt.requestFrame){fs=cv.captureStream(30);vt=null}
- st.vtrack=vt;
- const tracks=[...fs.getVideoTracks()];let hasA=false;
- try{if(st.ac){await st.ac.resume();st.adst.stream.getAudioTracks().forEach(t=>{tracks.push(t);hasA=true})}}catch(e){}
- if(!hasA){try{const vs=vid.captureStream&&vid.captureStream();vs&&vs.getAudioTracks().forEach(t=>tracks.push(t))}catch(e){}}
- const rec=new MediaRecorder(new MediaStream(tracks),{mimeType:mt,videoBitsPerSecond:Math.round(clamp(w*h*30*.2,2.5e6,14e6)),audioBitsPerSecond:192000}),ch=[];
- rec.ondataavailable=e=>e.data.size&&ch.push(e.data);
- let slow=false;
- const stopped=new Promise(r=>rec.onstop=r),ended=new Promise(res=>{vid.onended=res;st.onSlow=()=>{slow=true;res()}});
- vid.ontimeupdate=()=>{foot.textContent='Rendering HD… '+Math.round(100*vid.currentTime/(vid.duration||1))+'%'};
- st.watch=idx<3;rec.start(1000);await vid.play();await ended;vid.pause();
- st.watch=false;st.onSlow=null;if(!slow)await wait(200);
- rec.stop();await stopped;st.vtrack=null;vid.ontimeupdate=null;vid.onended=null;
- return slow?{slow:true,level:idx}:{blob:new Blob(ch,{type:mt.split(';')[0]})}}
-const median=a=>{a=[...a].sort((x,y)=>x-y);return a[a.length>>1]};
-function snapFps(f){for(const v of [23.976,24,25,29.97,30,48,50,59.94,60])if(Math.abs(f-v)/v<.012)return v;return Math.round(f)||30}
-function seek0(){return new Promise(r=>{if(vid.currentTime<.01){r();return}vid.onseeked=()=>{vid.onseeked=null;r()};vid.currentTime=0;setTimeout(r,1500)})}
-async function probeFps(){
- const ts=[];
- await new Promise(res=>{const cb=(n,m)=>{ts.push(m.mediaTime);if(ts.length>=14)res();else vid.requestVideoFrameCallback(cb)};
-  vid.requestVideoFrameCallback(cb);vid.play().catch(()=>res());setTimeout(res,2500)});
- vid.pause();const d=[];for(let i=1;i<ts.length;i++){const x=ts[i]-ts[i-1];if(x>0)d.push(x)}
- const hasAudio=vid.webkitAudioDecodedByteCount!==undefined?(vid.webkitAudioDecodedByteCount>0):(vid.mozHasAudio!==undefined?vid.mozHasAudio:null);
- return{fps:d.length>3?snapFps(1/median(d)):30,hasAudio}}
-async function decodeAudio(){
- const AC=window.AudioContext||window.webkitAudioContext,ac=new AC({sampleRate:48000});
- try{return await ac.decodeAudioData(await st.file.arrayBuffer())}finally{try{ac.close()}catch(e){}}}
+  try{
+    if(!st.ac){
+      const AC=window.AudioContext||window.webkitAudioContext;
+      st.ac=new AC();
+      st.asrc=st.ac.createMediaElementSource(vid);
+      st.mon=st.ac.createGain();
+      st.adst=st.ac.createMediaStreamDestination();
+      st.asrc.connect(st.adst);st.asrc.connect(st.mon);st.mon.connect(st.ac.destination);
+    }
+    if(st.ac.state!=='running')st.ac.resume();
+  }catch(e){}
+}
 
-async function encodeAttempt(w,h,fps,rate,buf,dur){
- const foot=$('adfoot'),vcfg={width:w,height:h,bitrate:Math.round(clamp(w*h*fps*.25,4e6,16e6)),framerate:fps,latencyMode:'quality',avc:{format:'avc'}};
- let vc=null;
- for(const c of ['avc1.64002A','avc1.4D402A','avc1.42E02A','avc1.640028','avc1.4D4028','avc1.42E028']){
-  try{if((await VideoEncoder.isConfigSupported({...vcfg,codec:c})).supported){vc=c;break}}catch(e){}}
- if(!vc)return null;
- const sr=buf?buf.sampleRate:0,acfg={codec:'mp4a.40.2',sampleRate:sr,numberOfChannels:2,bitrate:192000};
- if(buf){try{if(!(await AudioEncoder.isConfigSupported(acfg)).supported)return null}catch(e){return null}}
- const target=new Mp4Muxer.ArrayBufferTarget();
- const mux=new Mp4Muxer.Muxer({target,video:{codec:'avc',width:w,height:h},...(buf?{audio:{codec:'aac',numberOfChannels:2,sampleRate:sr}}:{}),fastStart:'in-memory'});
- let err=null;
- const venc=new VideoEncoder({output:(c,m)=>mux.addVideoChunk(c,m),error:e=>{err=e}});venc.configure({...vcfg,codec:vc});
- const aenc=buf?new AudioEncoder({output:(c,m)=>mux.addAudioChunk(c,m),error:e=>{err=e}}):null;if(aenc)aenc.configure(acfg);
- const total=buf?Math.round(dur*sr):0,blen=buf?buf.length:0,c0=buf&&buf.getChannelData(0),c1=buf&&(buf.numberOfChannels>1?buf.getChannelData(1):c0);let apos=0;
- const pump=sec=>{if(!aenc)return;const to=Math.min(total,Math.round(sec*sr));
-  while(apos<to){const n=Math.min(4800,total-apos),data=new Float32Array(n*2),e=Math.min(blen,apos+n);
-   if(e>apos){data.set(c0.subarray(apos,e),0);data.set(c1.subarray(apos,e),n)}
-   aenc.encode(new AudioData({format:'f32-planar',sampleRate:sr,numberOfFrames:n,numberOfChannels:2,timestamp:Math.round(apos*1e6/sr),data}));apos+=n}};
- const td=1/fps,totalFrames=Math.round(dur*fps),kf=Math.max(1,Math.round(fps*2));
- let nextN=0,lastM=-1,drops=0,done=false,aborted=false,slowed=false,resolveEnd;
- const emit=()=>{const f=new VideoFrame(cv,{timestamp:Math.round(nextN*1e6/fps),duration:Math.round(1e6/fps)});venc.encode(f,{keyFrame:nextN%kf===0});f.close();nextN++};
- const onFrame=(now,meta)=>{
-  if(done||aborted||err)return;
-  vid.requestVideoFrameCallback(onFrame);
-  const m=meta.mediaTime;
-  if(lastM>=0&&m-lastM>td*1.6)drops+=Math.round((m-lastM)/td)-1;
-  lastM=m;
-  while(nextN<totalFrames&&nextN*td<m-td*.5)emit();
-  drawV();
-  while(nextN<totalFrames&&nextN*td<m+td*.5)emit();
-  pump(nextN*td+.3);
-  foot.textContent='Rendering HD… '+Math.min(99,Math.round(100*m/dur))+'%';
-  if(drops>Math.max(6,totalFrames*.04)&&rate>.12){aborted=true;resolveEnd();return}
-  const q=venc.encodeQueueSize;
-  if(q>6&&!slowed){slowed=true;vid.playbackRate=Math.max(.0625,rate*.4)}else if(q<=2&&slowed){slowed=false;vid.playbackRate=rate}};
- vid.playbackRate=rate;vid.defaultPlaybackRate=rate;
- const endP=new Promise(res=>{resolveEnd=res;vid.onended=res});
- drawV();
- vid.requestVideoFrameCallback(onFrame);
- await vid.play();await endP;done=true;vid.pause();vid.onended=null;
- if(aborted||err){try{venc.close();if(aenc)aenc.close()}catch(e){}return aborted?{retry:true}:null}
- await wait(80);
- while(nextN<totalFrames)emit();
- pump(dur+1);
- await venc.flush();if(aenc)await aenc.flush();
- venc.close();if(aenc)aenc.close();
- if(err)return null;
- mux.finalize();
- return{blob:new Blob([target.buffer],{type:'video/mp4'}),frames:nextN}}
+async function exportVideoLegacy(stamp){
+  const types=['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4','video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'];
+  const mt=window.MediaRecorder&&types.find(t=>MediaRecorder.isTypeSupported(t));
+  if(!mt){toast('Video export is not supported on this device.',3800);closeAd();return}
+  const ext=mt.startsWith('video/mp4')?'mp4':'webm',foot=$('adfoot');
+  st.exporting=true;st.hold=false;st.lid++;
+  vid.loop=false;vid.playbackRate=1;vid.defaultPlaybackRate=1;vid.muted=false;vid.volume=1;
+  prepAudio();if(st.mon)st.mon.gain.value=0;
 
-async function exportMP4(){
- if(!(window.VideoEncoder&&window.AudioEncoder&&window.VideoFrame&&window.AudioData&&window.Mp4Muxer&&vid.requestVideoFrameCallback))return null;
- const dur=vid.duration;if(!isFinite(dur)||dur<=0)return null;
- const foot=$('adfoot');
- st.exporting=true;st.hold=false;st.lid++;vid.loop=false;vid.muted=true;vid.pause();
- try{
-  foot.textContent='Preparing video…';
-  await seek0();
-  const pr=await probeFps(),fps=pr.fps;
-  let buf=null;
-  if(pr.hasAudio!==false){foot.textContent='Reading audio…';buf=await decodeAudio()}
-  await seek0();
-  let rate=1,res=null,lvl=0;
-  for(let a=0;a<5&&!res;a++){
-   const[w,h,idx,ms]=pickSize(lvl,56);
-   rate=clamp(.4*(1000/fps)/ms*Math.pow(.75,a),.12,1);
-   foot.textContent=a?'Optimizing for exact timing…':'Rendering HD…';
-   const r=await encodeAttempt(w,h,fps,rate,buf,dur);
-   if(!r)return null;
-   if(r.retry){lvl=Math.min(3,idx+1);await seek0()}else res=r}
-  return res?res.blob:null;
- }finally{
-  st.exporting=false;st.watch=false;st.vtrack=null;vid.onended=null;vid.loop=true;vid.muted=false;vid.volume=1;vid.playbackRate=1;vid.defaultPlaybackRate=1;
-  const[pw,ph]=fit(vid.videoWidth,vid.videoHeight,MAXV);cv.width=pw;cv.height=ph;
-  try{vid.currentTime=0}catch(e){}vid.play().catch(()=>{});loop()}}
+  try{
+    await seek0();
+    const[w,h]=fit(vid.videoWidth,vid.videoHeight,960);
+    st.dim={w,h};cv.width=w;cv.height=h;
+    let fs=cv.captureStream(0),vt=fs.getVideoTracks()[0];
+    if(!vt||!vt.requestFrame){fs=cv.captureStream(30);vt=null}
+    st.vtrack=vt;
+    const tracks=[...fs.getVideoTracks()];
+    let hasA=false;
+    try{if(st.ac){await st.ac.resume();st.adst.stream.getAudioTracks().forEach(t=>{tracks.push(t);hasA=true})}}catch(e){}
+    if(!hasA){try{const vs=vid.captureStream&&vid.captureStream();vs&&vs.getAudioTracks().forEach(t=>tracks.push(t))}catch(e){}}
 
-async function exportVideo(){
- let blob=null;
- try{blob=await exportMP4()}catch(e){blob=null}
- if(blob){$('adfoot').textContent='Saving…';await save('G-Book-Camera-HD.mp4',blob);return}
- await exportVideoLegacy()}
+    const rec=new MediaRecorder(new MediaStream(tracks),{
+      mimeType:mt,videoBitsPerSecond:Math.round(clamp(w*h*30*0.18,2.5e6,10e6)),audioBitsPerSecond:192000
+    }),ch=[];
+    rec.ondataavailable=e=>e.data.size&&ch.push(e.data);
+    const stopped=new Promise(r=>rec.onstop=r),ended=new Promise(r=>vid.onended=r);
 
-async function exportVideoLegacy(){
- const types=['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4','video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'];
- const mt=window.MediaRecorder&&types.find(t=>MediaRecorder.isTypeSupported(t));
- if(!mt){toast('Video export isn’t supported on this device.',4000);closeAd();return}
- const ext=mt.startsWith('video/mp4')?'mp4':'webm',foot=$('adfoot');
- st.exporting=true;st.hold=false;vid.loop=false;vid.playbackRate=1;vid.defaultPlaybackRate=1;vid.muted=false;vid.volume=1;
- prepAudio();if(st.mon)st.mon.gain.value=0;
- let level=0,blob=null;
- try{
-  for(let a=0;a<4&&!blob;a++){foot.textContent=a?'Optimizing for smooth 1.0x playback…':'Preparing video…';
-   const r=await recordOnce(mt,level);if(r.slow)level=r.level+1;else blob=r.blob}
- }finally{st.exporting=false;st.watch=false;st.vtrack=null;vid.loop=true;if(st.mon)st.mon.gain.value=1}
- const[pw,ph]=fit(vid.videoWidth,vid.videoHeight,MAXV);cv.width=pw;cv.height=ph;vid.currentTime=0;vid.play().catch(()=>{});
- foot.textContent='Saving…';await save('G-Book-Camera-HD.'+ext,blob)}
+    const drawLoop=()=>{
+      if(!st.exporting)return;
+      drawVideoFrame(w,h);
+      foot.textContent='Rendering HD… '+Math.min(99,Math.round(100*vid.currentTime/(vid.duration||1)))+'%';
+      if(vid.requestVideoFrameCallback)vid.requestVideoFrameCallback(drawLoop);
+      else requestAnimationFrame(drawLoop);
+    };
+    rec.start(500);
+    drawLoop();
+    await vid.play();
+    await ended;
+    vid.pause();await wait(120);
+    rec.stop();await stopped;
+    const blob=new Blob(ch,{type:mt.split(';')[0]});
+    $('adfoot').textContent='Saving…';
+    await save('GBook-Camera-'+stamp+'.'+ext,blob);
+  }finally{
+    st.exporting=false;st.vtrack=null;vid.onended=null;vid.loop=true;
+    if(st.mon)st.mon.gain.value=1;
+    const[pw,ph]=fit(vid.videoWidth,vid.videoHeight,MAXV);
+    st.dim={w:pw,h:ph};cv.width=pw;cv.height=ph;
+    await seek0();vid.play().catch(()=>{});loop();
+  }
+}
 
+async function exportVideo(stamp){
+  let blob=null;
+  try{blob=await exportMP4Fast()}catch(e){blob=null}
+  if(blob){$('adfoot').textContent='Saving…';await save('GBook-Camera-'+stamp+'.mp4',blob);return}
+  await exportVideoLegacy(stamp);
+}
+
+/* ============================================================================
+   Connectivity & Background Ad Preloading
+   ============================================================================ */
 let netT;
-function banner(t,cls,ms){const n=$('net');n.textContent=t;n.className='net on '+(cls||'');clearTimeout(netT);if(ms)netT=setTimeout(()=>n.classList.remove('on'),ms)}
-addEventListener('offline',()=>banner('Connect to Internet','',0));
+function banner(t,cls,ms){
+  const n=$('net');n.textContent=t;n.className='net on '+(cls||'');
+  clearTimeout(netT);if(ms)netT=setTimeout(()=>n.classList.remove('on'),ms);
+}
+addEventListener('offline',()=>banner('Offline — Ads paused','',2500));
 addEventListener('online',()=>{banner('Connected','ok',1500);adsStart()});
-if(!navigator.onLine)banner('Connect to Internet','',0);else adsStart();
+if(navigator.onLine)adsStart();
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&navigator.onLine)adsStart()});
+document.addEventListener('deviceready',()=>{if(navigator.onLine)adsStart()},false);
+try{if(navigator.connection&&navigator.connection.addEventListener)navigator.connection.addEventListener('change',()=>{if(navigator.onLine)adsStart()})}catch(e){}
+setInterval(()=>{if(navigator.onLine&&(!Ads.R.ready||(ADMOB_INTERSTITIAL_ID&&!Ads.I.ready)))adsStart()},12000);
 
-/* Notification choice gate: entry is never dependent on Web Notification support.
-   Native permission and the repeating 08:00 reminder are attempted in the background. */
+/* ============================================================================
+   Clean Notification Permission Popup + Silent 08:00 AM Daily Reminder
+   ============================================================================ */
 const GATE_KEY='gbc_notifications_granted_v2';
 function safelySaveNotificationChoice(){try{localStorage.setItem(GATE_KEY,'granted')}catch(e){}}
 async function silentlySetupDailyReminder(){
-  // Capacitor LocalNotifications plugin (when included by the native wrapper).
   try{
     const C=window.Capacitor;
     const N=(C&&C.Plugins&&C.Plugins.LocalNotifications)||plug('LocalNotifications');
     if(N){
       try{
         if(typeof N.checkPermissions==='function'){
-          let permission=await N.checkPermissions();
-          if(permission&&permission.display!=='granted'&&typeof N.requestPermissions==='function')
-            permission=await N.requestPermissions();
+          let p=await N.checkPermissions();
+          if(p&&p.display!=='granted'&&typeof N.requestPermissions==='function')await N.requestPermissions();
         }else if(typeof N.requestPermissions==='function'){
           await N.requestPermissions();
         }
@@ -730,39 +1283,27 @@ async function silentlySetupDailyReminder(){
         if(typeof N.schedule==='function')await N.schedule({notifications:[{
           id:1808,
           title:'G-Book Camera',
-          body:'Open G-Book Camera and create something great.',
+          body:'Open G-Book Camera and enhance your photos & videos.',
           channelId:'daily',
           schedule:{on:{hour:8,minute:0},repeats:true,allowWhileIdle:true},
-          extra:{gbcDailyReminder:true,version:4}
+          extra:{gbcDailyReminder:true,version:5}
         }]});
       }catch(e){}
     }
   }catch(e){}
-
-  // Optional Android JavaScript bridge exposed by a WebView/native wrapper.
   try{
     const A=window.Android||window.GBookCameraBridge;
     if(A){
       try{if(typeof A.requestNotificationPermission==='function')await A.requestNotificationPermission()}catch(e){}
-      try{
-        if(typeof A.scheduleDailyNotification==='function')
-          await A.scheduleDailyNotification(8,0,'G-Book Camera','Open G-Book Camera and create something great.');
-      }catch(e){}
-      try{
-        if(typeof A.setNotificationPermissionGranted==='function')
-          await A.setNotificationPermissionGranted(true);
-      }catch(e){}
+      try{if(typeof A.scheduleDailyNotification==='function')await A.scheduleDailyNotification(8,0,'G-Book Camera','Open G-Book Camera and enhance your photos & videos.')}catch(e){}
+      try{if(typeof A.setNotificationPermissionGranted==='function')await A.setNotificationPermissionGranted(true)}catch(e){}
     }
   }catch(e){}
 }
 function grantNotificationAccess(){
-  // Do these first and synchronously: never wait for a native bridge or browser API.
   safelySaveNotificationChoice();
   const gate=$('notificationGate');
   if(gate){gate.style.display='none';gate.setAttribute('aria-hidden','true')}
-  const button=$('allowNotifications');
-  if(button)button.disabled=false;
-  // Native permission/scheduling is best-effort only and cannot block app entry.
   Promise.resolve().then(()=>silentlySetupDailyReminder()).catch(()=>{});
 }
 function checkNotificationGate(){
@@ -773,14 +1314,12 @@ function checkNotificationGate(){
     gate.style.display=allowed?'none':'flex';
     gate.setAttribute('aria-hidden',allowed?'true':'false');
   }
-  // Re-attempt scheduling silently for users who previously tapped Allow.
   if(allowed)Promise.resolve().then(()=>silentlySetupDailyReminder()).catch(()=>{});
 }
 $('allowNotifications').addEventListener('click',grantNotificationAccess);
 checkNotificationGate();
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&navigator.onLine)adsStart()});
-try{if(navigator.connection&&navigator.connection.addEventListener)navigator.connection.addEventListener('change',()=>{if(navigator.onLine)adsStart()})}catch(e){}
-(function(){try{var s=document.createElement('script');s.src='mp4-muxer.js';s.async=true;document.head.appendChild(s)}catch(e){}})();
+
+(function(){try{var s=document.createElement('script');s.src='mp4-muxer.js';s.async=true;s.onerror=function(){if(!window.Mp4Muxer&&navigator.onLine){var c=document.createElement('script');c.src='https://cdn.jsdelivr.net/npm/mp4-muxer@5.1.3/build/mp4-muxer.min.js';c.async=true;document.head.append(c)}};document.head.append(s)}catch(e){}})();
 window.gbcIdle=()=>!st.kind&&!st.busy&&!st.exporting;
 window.gbcNotify=m=>{try{toast(m,1200)}catch(e){}};
 window.__gbcBooted=true;
