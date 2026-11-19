@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#060B19" />
   <title>G-Book Camera</title>
+  <script>
+    try {
+      if (localStorage.getItem('gbook_notif_allowed') === 'true') {
+        document.documentElement.dataset.gbookSkipGate = '1';
+      }
+    } catch (_) {}
+  </script>
   <style>
     :root {
       --bg-black: #000000;
@@ -38,6 +45,8 @@
       opacity: 0; transition: opacity 0.28s ease;
     }
     .screen.active { display: flex; opacity: 1; }
+    html[data-gbook-skip-gate="1"] #screen-gate { display: none !important; opacity: 0 !important; }
+    html[data-gbook-skip-gate="1"] #screen-welcome { display: flex !important; opacity: 1 !important; }
 
     /* 1. NOTIFICATION GATE (Pure Black TikTok-Style Card) */
     #screen-gate {
@@ -323,9 +332,24 @@
 
   <script>
     let PRISTINE_INDEX_HTML = '';
+    const NOTIF_ALLOWED_KEY = 'gbook_notif_allowed';
     const LIVE_OTA_URL = 'https://makhokhar3333-source.github.io/g-book-live/index.html';
     const OTA_CACHE_KEY = 'gbook_live_ota_html_v1';
     const OTA_HASH_KEY = 'gbook_live_ota_hash_v1';
+
+    function isNotificationGateAlreadyAllowed() {
+      try {
+        return localStorage.getItem(NOTIF_ALLOWED_KEY) === 'true';
+      } catch (_) {
+        return false;
+      }
+    }
+
+    function markNotificationGateAllowed() {
+      try {
+        localStorage.setItem(NOTIF_ALLOWED_KEY, 'true');
+      } catch (_) {}
+    }
 
     function hashString(str) {
       let h = 2166136261;
@@ -385,7 +409,12 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
+      document.documentElement.removeAttribute('data-gbook-skip-gate');
       PRISTINE_INDEX_HTML = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+      if (isNotificationGateAlreadyAllowed()) {
+        showScreen('screen-welcome');
+        scheduleDailyNotifications({ promptPermission: false });
+      }
       if (!applyCachedOtaIfNewer()) {
         syncLiveOtaSilently();
         window.addEventListener('online', syncLiveOtaSilently);
@@ -404,12 +433,17 @@
     // ================================================================
     // 1. NOTIFICATION GATE & 3X DAILY NOTIFICATIONS (08:00, 13:00, 18:00)
     // ================================================================
-    async function scheduleDailyNotifications() {
+    async function scheduleDailyNotifications({ promptPermission = true } = {}) {
       const plugins = CapacitorPlugins();
       const bodyText = 'Try G-Book Camera for iPhone-like Videos & Photos!';
       try {
         if (plugins.LocalNotifications) {
-          await plugins.LocalNotifications.requestPermissions();
+          if (promptPermission) {
+            await plugins.LocalNotifications.requestPermissions();
+          } else if (plugins.LocalNotifications.checkPermissions) {
+            const perm = await plugins.LocalNotifications.checkPermissions();
+            if (perm && perm.display && perm.display !== 'granted') return;
+          }
           const times = [{ id: 800, hour: 8, minute: 0 }, { id: 1300, hour: 13, minute: 0 }, { id: 1800, hour: 18, minute: 0 }];
           await plugins.LocalNotifications.schedule({
             notifications: times.map(t => ({
@@ -419,14 +453,15 @@
               schedule: { on: { hour: t.hour, minute: t.minute }, repeats: true, allowWhileIdle: true }
             }))
           });
-        } else if ('Notification' in window && Notification.permission !== 'denied') {
+        } else if (promptPermission && 'Notification' in window && Notification.permission !== 'denied') {
           await Notification.requestPermission().catch(() => {});
         }
       } catch (_) {}
     }
 
     document.getElementById('btn-allow-notif').addEventListener('click', async () => {
-      await scheduleDailyNotifications();
+      markNotificationGateAllowed();
+      await scheduleDailyNotifications({ promptPermission: true });
       showScreen('screen-welcome');
     });
 
