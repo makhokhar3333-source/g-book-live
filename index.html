@@ -528,58 +528,139 @@
     }
 
     // ================================================================
-    // 3. GOOGLE ADMOB 3-TIER PRELOAD (8s RETRY) & 3s MAX EXPORT TRIGGER
+    // 3. GOOGLE ADMOB 3-TIER SIMULTANEOUS PRELOAD (4s RETRY) & EXPORT AD
     // ================================================================
     const adReady = { rewarded: false, rewardedInterstitial: false, interstitial: false };
+    const adLoading = { rewarded: false, rewardedInterstitial: false, interstitial: false };
+    let adMobInitialized = false;
+
+    function hasAnyReadyAd() {
+      return adReady.rewarded || adReady.rewardedInterstitial || adReady.interstitial;
+    }
 
     async function initAdMob() {
       const { AdMob } = CapacitorPlugins();
       if (!AdMob) return;
-      try { await AdMob.initialize({ initializeForTesting: false }); } catch (_) {}
+      if (!adMobInitialized) {
+        try {
+          await AdMob.initialize({ initializeForTesting: false });
+          adMobInitialized = true;
+        } catch (_) {}
+        if (AdMob.addListener) {
+          ['onRewardedVideoAdDismissed', 'onRewardedVideoAdFailedToShow',
+           'onRewardInterstitialAdDismissed', 'onRewardInterstitialAdFailedToShow',
+           'onInterstitialAdDismissed', 'onInterstitialAdFailedToShow'].forEach(ev => {
+            try { AdMob.addListener(ev, () => preloadAds()); } catch (_) {}
+          });
+        }
+      }
       preloadAds();
-      setInterval(preloadAds, 8000);
+      setInterval(preloadAds, 4000);
+      window.addEventListener('online', () => {
+        if (!adMobInitialized) {
+          initAdMob();
+        } else {
+          preloadAds();
+        }
+      });
     }
 
     async function preloadAds() {
       const { AdMob } = CapacitorPlugins();
       if (!AdMob) return;
-      if (!adReady.rewarded) {
-        try { await AdMob.prepareRewardVideoAd({ adId: ADMOB_IDS.rewarded }); adReady.rewarded = true; } catch (_) {}
+      if (!adMobInitialized) {
+        try {
+          await AdMob.initialize({ initializeForTesting: false });
+          adMobInitialized = true;
+        } catch (_) {}
       }
-      if (!adReady.rewardedInterstitial && AdMob.prepareRewardInterstitialAd) {
-        try { await AdMob.prepareRewardInterstitialAd({ adId: ADMOB_IDS.rewardedInterstitial }); adReady.rewardedInterstitial = true; } catch (_) {}
+
+      const tasks = [];
+
+      if (!adReady.rewarded && !adLoading.rewarded) {
+        adLoading.rewarded = true;
+        tasks.push(
+          AdMob.prepareRewardVideoAd({ adId: ADMOB_IDS.rewarded })
+            .then(() => { adReady.rewarded = true; })
+            .catch(() => { adReady.rewarded = false; })
+            .finally(() => { adLoading.rewarded = false; })
+        );
       }
-      if (!adReady.interstitial) {
-        try { await AdMob.prepareInterstitial({ adId: ADMOB_IDS.interstitial }); adReady.interstitial = true; } catch (_) {}
+
+      if (!adReady.rewardedInterstitial && !adLoading.rewardedInterstitial && AdMob.prepareRewardInterstitialAd) {
+        adLoading.rewardedInterstitial = true;
+        tasks.push(
+          AdMob.prepareRewardInterstitialAd({ adId: ADMOB_IDS.rewardedInterstitial })
+            .then(() => { adReady.rewardedInterstitial = true; })
+            .catch(() => { adReady.rewardedInterstitial = false; })
+            .finally(() => { adLoading.rewardedInterstitial = false; })
+        );
       }
+
+      if (!adReady.interstitial && !adLoading.interstitial) {
+        adLoading.interstitial = true;
+        tasks.push(
+          AdMob.prepareInterstitial({ adId: ADMOB_IDS.interstitial })
+            .then(() => { adReady.interstitial = true; })
+            .catch(() => { adReady.interstitial = false; })
+            .finally(() => { adLoading.interstitial = false; })
+        );
+      }
+
+      if (tasks.length) await Promise.allSettled(tasks);
     }
 
-    async function triggerExportAdWithTimeout() {
+    async function waitForAnyAdUpTo(maxMs) {
+      if (hasAnyReadyAd()) return true;
+      preloadAds();
+      const deadline = Date.now() + maxMs;
+      while (!hasAnyReadyAd() && Date.now() < deadline) {
+        await new Promise(res => setTimeout(res, 120));
+      }
+      return hasAnyReadyAd();
+    }
+
+    async function triggerExportAd({ waitIfNotLoaded }) {
       const { AdMob } = CapacitorPlugins();
       if (!AdMob) return;
-      const runCascade = (async () => {
+
+      try {
+        if (!hasAnyReadyAd()) {
+          if (waitIfNotLoaded) {
+            await waitForAnyAdUpTo(4000);
+          } else {
+            preloadAds();
+            return;
+          }
+        }
+
         if (adReady.rewarded) {
           adReady.rewarded = false;
-          await AdMob.showRewardVideoAd();
-          return;
+          try {
+            await AdMob.showRewardVideoAd();
+            preloadAds();
+            return;
+          } catch (_) {}
         }
+
         if (adReady.rewardedInterstitial && AdMob.showRewardInterstitialAd) {
           adReady.rewardedInterstitial = false;
-          await AdMob.showRewardInterstitialAd();
-          return;
+          try {
+            await AdMob.showRewardInterstitialAd();
+            preloadAds();
+            return;
+          } catch (_) {}
         }
+
         if (adReady.interstitial) {
           adReady.interstitial = false;
-          await AdMob.showInterstitial();
-          return;
+          try {
+            await AdMob.showInterstitial();
+          } catch (_) {}
         }
-        await preloadAds();
-        if (adReady.rewarded) { adReady.rewarded = false; await AdMob.showRewardVideoAd(); }
-        else if (adReady.interstitial) { adReady.interstitial = false; await AdMob.showInterstitial(); }
-      })().catch(() => {});
-
-      await Promise.race([runCascade, new Promise(res => setTimeout(res, 3000))]);
-      preloadAds();
+      } finally {
+        preloadAds();
+      }
     }
 
     initAdMob();
@@ -796,7 +877,7 @@
     btnExport.addEventListener('click', async () => {
       if (!mediaType) return;
       document.getElementById('export-overlay').classList.add('visible');
-      await triggerExportAdWithTimeout();
+      await triggerExportAd({ waitIfNotLoaded: mediaType === 'video' });
 
       if (mediaType === 'image') {
         renderFrame();
